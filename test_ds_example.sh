@@ -6,11 +6,10 @@ arch=RN50 # ViT-B/16
 run_type=tpt # tpt ctpt otpt ntpt
 down_sample_ratio=0.001
 log_dir='./logs/'
-is_ece=true
 gpu=1
 
 python ./main.py ${data_root} --test_sets ${testsets} \
 -a ${arch} --gpu ${gpu} \
 --tpt --run_type ${run_type} --I_augmix \
 --down_sample_ratio ${down_sample_ratio} \
---log_dir ${log_dir} --is_ece ${is_ece} \
+--log_dir ${log_dir} \

@@ -1,23 +1,23 @@
-# # 忽略所有文件和目录
-# *
+# 忽略所有文件和目录
+*
 
-# # 明确跟踪的目录及其内容
-# !clip/
-# !data/
-# !ttabc/configs/
-# !ttabc/model_selection/
-# !ttabc/utils/
+# 明确跟踪的目录及其内容
+!clip/
+!data/
+!ttabc/configs/
+!ttabc/model_selection/
+!ttabc/utils/
 
-# # 忽略特定文件和目录
-# __pycache__/
-# *.pyc
-# *.pyo
+# 忽略特定文件和目录
+__pycache__/
+*.pyc
+*.pyo
 
-# # 明确跟踪的单个文件
-# !main.py
-# !LICENSE
-# !README.md
-# !requirements.txt
-# !test_ds_example.sh
-# !test_fg_example.sh
-# !.gitignore
+# 明确跟踪的单个文件
+!main.py
+!LICENSE
+!README.md
+!requirements.txt
+!test_ds_example.sh
+!test_fg_example.sh
+!.gitignore

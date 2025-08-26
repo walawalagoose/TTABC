@@ -49,7 +49,7 @@ Send us a PR to add your dataset! Any custom image dataset with folder structure
 ```bash
 
 # Clone this repo
-git clone https://github.com/Cevaaa/N-TPT.git
+git clone https://github.com/Cevaaa/TTABC.git
 cd N-TPT
 
 # Create a conda enviroment

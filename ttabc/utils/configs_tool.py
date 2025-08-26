@@ -27,7 +27,7 @@ def config_hparams(config):
     config = defaults_registry(
         config, template=algorithm_defaults[config.run_type]
     )
-    bool_params = ['tpt', 'cocoop', 'two_step', 'I_augmix', 'is_ece']
+    bool_params = ['tpt', 'cocoop', 'two_step', 'I_augmix']
     none_params = ['ctx_init', 'load', 'log_dir']
 
     convert_config_params(config, bool_params, none_params)
