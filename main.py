@@ -27,7 +27,8 @@ from clip.custom_clip import get_coop
 from clip.cocoop import get_cocoop
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, ece_calculator, ECE_Loss, select_confident_samples, avg_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, select_confident_samples, avg_entropy
+from ttabc.utils.metrics_tools import ece_calculator, ECE_Loss, accuracy_writer
 from ttabc.utils.model import create_model, set_optimizer
 from ttabc.utils.load_data import create_dataloader
 from ttabc.model_selection import get_method
@@ -46,7 +47,7 @@ model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
 
-def main(args, file_path=None):
+def main(args):
 
     set_random_seed(args.seed)
 
@@ -62,7 +63,24 @@ def main(args, file_path=None):
     # iterating through eval datasets
     datasets = args.test_sets.split("/")
     results = {}
+    results_for_ece = {}
+    ece_res = {}
     for set_id in datasets:
+        if args.log_dir is not None:
+            # Create a folder named with the current date
+            date_str = datetime.now().strftime('%Y-%m-%d')
+            log_path = os.path.join(args.log_dir, date_str)
+            os.makedirs(log_path, exist_ok=True)
+            
+            # Create a file to store args and printed parameters
+            file_name = f"{args.run_type}_{set_id}_{args.arch}.txt"
+            file_path = os.path.join(log_path, file_name)
+
+            with open(file_path, 'a') as f:
+                # Write args to the file
+                for arg, value in vars(args).items():
+                    f.write(f"{arg}: {value}\n")
+        
         val_dataset, val_loader, classnames = create_dataloader(args, set_id)
         if args.cocoop:
             tpt_methods.model.prompt_generator.reset_classnames(classnames, args.arch)
@@ -72,66 +90,18 @@ def main(args, file_path=None):
         else:
             tpt_methods.model.reset_classnames(classnames, args.arch)
 
-        if args.is_ece:
-            result_dict = {'max_confidence': [], 'prediction': [], 'label': []}
-        else:
-            result_dict = None
-        calibration_methods_name = ['ctpt', 'otpt', 'ntpt']
-        if args.run_type in calibration_methods_name:
-            assert len(datasets) == 1
-            args.is_ece = True
-            result_dict = {'max_confidence': [], 'prediction': [], 'label': []}
-            results[set_id] = tpt_methods.test_time_adapt_eval(val_loader, result_dict)
-            acc, ece = ece_calculator(result_dict)
-        else:
-            if args.is_ece:
-                results[set_id] = tpt_methods.test_time_adapt_eval(val_loader, result_dict)
-                acc, ece = ece_calculator(result_dict)
-            else:
-                results[set_id] = tpt_methods.test_time_adapt_eval(val_loader)
+        results_for_ece[set_id] = {'max_confidence': [], 'prediction': [], 'label': []}
+        results[set_id] = tpt_methods.test_time_adapt_eval(val_loader, results_for_ece[set_id])
+        _, ece_res[set_id] = ece_calculator(results_for_ece[set_id])
         del val_dataset, val_loader
         try:
             print("=> Acc. on testset [{}]: @1 {}/ @5 {}".format(set_id, results[set_id][0], results[set_id][1]))
         except:
             print("=> Acc. on testset [{}]: {}".format(set_id, results[set_id]))
-
-    print("======== Result Summary ========")
-    print("params: nstep	lr	bs")
-    print("params: {}	{}	{}".format(args.tta_steps, args.lr, args.batch_size))
-    print("[set_id] \t Top-1 acc. \t Top-5 acc.")
-    for id in results.keys():
-        print("{}".format(id), end=" \t\t")
-    # print("\n")
-    # for id in results.keys():
-        print("{:.2f}".format(results[id][0]), end=" \t\t")
-        print("{:.2f}".format(results[id][1]), end=" \t\t")
-        print("\n")
-    if args.is_ece:
-        print('acc: ', acc)
-        print('ece: ', ece)
-    print("============== End =============")
-    if args.log_dir is not None:
-        # Create a folder named with the current date
-        date_str = datetime.now().strftime('%Y-%m-%d')
-        log_path = os.path.join(args.log_dir, date_str)
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-        with open(file_path, 'a') as f:
-            f.write("\n======== Result Summary ========\n")
-            f.write("params: nstep\tlr\tbs\n")
-            f.write(f"params: {args.tta_steps}\t{args.lr}\t{args.batch_size}\n")
-            f.write("[set_id] \t Top-1 acc. \t Top-5 acc.\n")
-            for id in results.keys():
-                f.write(f"{id} \t\t")
-            f.write("\n")
-            for id in results.keys():
-                f.write(f"{results[id][0]:.2f} \t\t")
-                f.write(f"{results[id][1]:.2f} \t\t")
-                f.write("\n")
-            if args.is_ece:
-                f.write(f'acc: {acc}\n')
-                f.write(f'ece: {ece}\n')
-            f.write("============== End =============\n")
+        if args.log_dir is not None:
+            accuracy_writer(args, results, ece_res, log_path=log_path, file_path=file_path)
+        else:
+            accuracy_writer(args, results, ece_res)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test-time Prompt Tuning')
@@ -169,30 +139,13 @@ if __name__ == '__main__':
     # added args for n-tpt --------------------------------
     parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
     parser.add_argument('--log_dir', type=str, default=None, help='log directory')
-    parser.add_argument('--is_ece', type=str, default=False, help='whether to calculate ece')
 
     # ------------------------------------------------
 
     args = parser.parse_args()
     args = config_hparams(args)
 
-    if args.log_dir is not None:
-        # Create a folder named with the current date
-        date_str = datetime.now().strftime('%Y-%m-%d')
-        log_path = os.path.join(args.log_dir, date_str)
-        os.makedirs(log_path, exist_ok=True)
-        
-        # Create a file to store args and printed parameters
-        file_name = f"{args.run_type}_{args.test_sets}_{args.arch}.txt"
-        file_path = os.path.join(log_path, file_name)
-        
-        with open(file_path, 'a') as f:
-            # Write args to the file
-            for arg, value in vars(args).items():
-                f.write(f"{arg}: {value}\n")
-        main(args, file_path)
-    else:
-        main(args)
+    main(args)
 
 
 

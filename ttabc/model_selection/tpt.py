@@ -12,7 +12,7 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, ece_calculator, ECE_Loss, select_confident_samples, avg_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples, avg_entropy
 from ttabc.model_selection.base_method import BaseMethod
 
 class TPT(BaseMethod):
@@ -88,8 +88,6 @@ class TPT(BaseMethod):
             target = target.cuda(self.args.gpu, non_blocking=True)
             if self.args.tpt:
                 images = torch.cat(images, dim=0)
-
-            self.args.image = image # for ctpt
 
             # reset the tunable prompt to its initial state
             if not self.args.cocoop: # no need to reset cocoop because it's fixed

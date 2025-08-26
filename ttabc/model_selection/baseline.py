@@ -12,7 +12,7 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, ece_calculator, ECE_Loss, select_confident_samples, avg_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy
 from ttabc.model_selection.base_method import BaseMethod
 
 import ipdb

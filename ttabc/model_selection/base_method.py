@@ -27,7 +27,6 @@ from clip.custom_clip import get_coop
 from clip.cocoop import get_cocoop
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, ece_calculator, ECE_Loss, select_confident_samples, avg_entropy
 from ttabc.utils.model import create_model, set_optimizer
 from ttabc.utils.load_data import create_dataloader
 from data.cls_to_names import *

@@ -4,8 +4,9 @@
 # 明确跟踪的目录及其内容
 !clip/
 !data/
-!methods/
-!utils/
+!ttabc/configs/
+!ttabc/model_selection/
+!ttabc/utils/
 
 # 忽略特定文件和目录
 __pycache__/
