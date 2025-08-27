@@ -105,42 +105,37 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test-time Prompt Tuning')
+    # data
     parser.add_argument('data', metavar='DIR', help='path to dataset root')
     parser.add_argument('--test_sets', type=str, default='A/R/V/K/I', help='test dataset (multiple datasets split by slash)')
     parser.add_argument('--dataset_mode', type=str, default='test', help='which split to use: train/val/test')
-    parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50')
-    parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N')
-    parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
-                        metavar='LR', help='initial learning rate', dest='lr')
-    parser.add_argument('-p', '--print-freq', default=200, type=int,
-                        metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--gpu', default=0, type=int,
-                        help='GPU id to use.')
+    parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
+    parser.add_argument('--I_augmix', action='store_true', default=False, help='augmix for I')
+    # model
+    parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50')
+    parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
     parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
-    parser.add_argument('--selection_p', default=0.1, type=float, help='confidence selection percentile')
-    parser.add_argument('--tta_steps', default=1, type=int, help='test-time-adapt steps')
     parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')
     parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
     parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization")
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
+    parser.add_argument('--run_type' , type=str, default='baseline_tpt', choices=['baseline', 'tpt', 'ctpt', 'tpt_ts', 'otpt', 'ntpt'], help='which method to use')
+    # parser.add_argument('--model_type', type=str, default='raw', choices=['raw', 'T', 'V', 'TV', 'cocoop'], help='which model to use')
+    # parameters and device
+    parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
+                        metavar='LR', help='initial learning rate', dest='lr')
+    parser.add_argument('--tta_steps', default=1, type=int, help='test-time-adapt steps')
     parser.add_argument('--seed', type=int, default=0)
-
-    # added args for c-tpt --------------------------------
-    parser.add_argument('--lambda_term' , type=float, default=0.0, help='lambda for c-tpt')
-    parser.add_argument('--run_type' , type=str, default='baseline_tpt', choices=['baseline', 'tpt', 'ctpt', 'tpt_ts', 'otpt', 'ntpt'],)
-    parser.add_argument('--two_step', action='store_true', default=False, help='two step training')
-    parser.add_argument('--I_augmix', action='store_true', default=False, help='augmix for I')
-    # ------------------------------------------------
-
-
-    # added args for n-tpt --------------------------------
-    parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
+    parser.add_argument('--gpu', default=0, type=int,
+                        help='GPU id to use.')
+    # logging
+    parser.add_argument('-p', '--print-freq', default=200, type=int,
+                        metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--log_dir', type=str, default=None, help='log directory')
 
-    # ------------------------------------------------
 
     args = parser.parse_args()
     args = config_hparams(args)

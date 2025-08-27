@@ -42,6 +42,11 @@ The download links of currently available datasets are:
 > + [ImageNet-V2](https://huggingface.co/datasets/vaishaal/ImageNetV2/tree/main)
 > + [Imagenet-R](https://people.eecs.berkeley.edu/~hendrycks/imagenet-r.tar)
 > + [Imagenet-Sketch](https://www.kaggle.com/datasets/wanghaohan/imagenetsketch)
+> + [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz)
+> + [CIFAR-10-C](https://zenodo.org/records/2535967/files/CIFAR-10-C.tar?download=1)
+> + [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz)
+> + [CIFAR-100-C](https://zenodo.org/records/3555552/files/CIFAR-100-C.tar?download=1)
+> + [ImageNet-C](https://zenodo.org/records/2235448)
 
 Send us a PR to add your dataset! Any custom image dataset with folder structure `dataset/domain/class/image.xyz` is readily usable.
 
