@@ -98,10 +98,10 @@ def main(args):
             print("=> Acc. on testset [{}]: @1 {}/ @5 {}".format(set_id, results[set_id][0], results[set_id][1]))
         except:
             print("=> Acc. on testset [{}]: {}".format(set_id, results[set_id]))
-        if args.log_dir is not None:
-            accuracy_writer(args, results, ece_res, log_path=log_path, file_path=file_path)
-        else:
-            accuracy_writer(args, results, ece_res)
+    if args.log_dir is not None:
+        accuracy_writer(args, results, ece_res, log_path=log_path, file_path=file_path)
+    else:
+        accuracy_writer(args, results, ece_res)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test-time Prompt Tuning')
