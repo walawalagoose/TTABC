@@ -115,15 +115,16 @@ if __name__ == '__main__':
     parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
     parser.add_argument('--I_augmix', action='store_true', default=False, help='augmix for I')
     # model
+    parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
+    parser.add_argument('--prompt_type' , type=str, default='T', choices=['T', 'V'], help='type of prompt')
+    parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
+    parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
+    parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization")
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50')
     parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
-    parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
     parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')
     parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
-    parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization")
-    parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     parser.add_argument('--run_type' , type=str, default='baseline_tpt', choices=['baseline', 'tpt', 'ctpt', 'tpt_ts', 'otpt', 'ntpt'], help='which method to use')
-    # parser.add_argument('--model_type', type=str, default='raw', choices=['raw', 'T', 'V', 'TV', 'cocoop'], help='which model to use')
     # parameters and device
     parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')
