@@ -76,7 +76,7 @@ def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split=
         testset = BongardDataset(data_root, split, mode, base_transform, query_transform, bongard_anno)
     elif 'imagenetc' in set_id:
         if len(set_id) > len('imagenetc'):
-            parts = set_id.split('_')
+            parts = set_id.split('-')
             assert len(parts) == 3 and parts[0] in ['imagenetc']
             set_id, cortype, corlevel = parts
             corlevel = int(corlevel)
@@ -91,7 +91,7 @@ def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split=
     elif 'cifar10c' in set_id or 'cifar100c' in set_id:
         if len(set_id) > len('cifar100c'):
             # e.g., cifar10c_brightness_5
-            parts = set_id.split('_')
+            parts = set_id.split('-')
             assert len(parts) == 3 and parts[0] in ['cifar10c', 'cifar100c']
             set_id, cortype, corlevel = parts
             corlevel = int(corlevel)
