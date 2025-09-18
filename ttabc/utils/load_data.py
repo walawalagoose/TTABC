@@ -73,14 +73,14 @@ def create_dataloader(args, set_id):
         # fine-grained classification datasets
         classnames = eval("{}_classes".format(set_id.lower()))
     elif 'cifar' in set_id:
-        if 'cifar10' in set_id:
-            classnames = cifar10_classes
-        elif 'cifar100' in set_id:
+        if 'cifar100' in set_id:
             classnames = cifar100_classes
+        elif 'cifar10' in set_id:
+            classnames = cifar10_classes
         else:
             raise NotImplementedError
     else:
-        assert set_id in ['A', 'R', 'K', 'V', 'I', 'imagenetc'] 
+        assert set_id in ['A', 'R', 'K', 'V', 'I'] or 'imagenetc' in set_id 
         classnames_all = imagenet_classes
         classnames = []
         if set_id in ['A', 'R', 'V']:

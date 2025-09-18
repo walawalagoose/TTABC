@@ -80,7 +80,7 @@ def main(args):
                 # Write args to the file
                 for arg, value in vars(args).items():
                     f.write(f"{arg}: {value}\n")
-                    
+
         val_dataset, val_loader, classnames = create_dataloader(args, set_id)
         if args.cocoop:
             tpt_methods.model.prompt_generator.reset_classnames(classnames, args.arch)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N')
     parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
     parser.add_argument('--I_augmix', action='store_true', default=False, help='augmix for I')
-    parser.add_argument('--corruption_type', default='gaussian_noise', type=str, help='corruption type for imagenetc, cifar10c, cifar100c')
+    parser.add_argument('--corruption_type', default='frost', type=str, help='corruption type for imagenetc, cifar10c, cifar100c')
     parser.add_argument('--corruption_level', default=5, type=int, help='corruption level for imagenetc, cifar10c, cifar100c')
     # model
     parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
