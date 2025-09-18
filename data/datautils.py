@@ -75,45 +75,26 @@ def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split=
         base_transform, query_transform = transform
         testset = BongardDataset(data_root, split, mode, base_transform, query_transform, bongard_anno)
     elif 'imagenetc' in set_id:
-        if len(set_id) > len('imagenetc'):
-            parts = set_id.split('-')
-            assert len(parts) == 3 and parts[0] in ['imagenetc']
-            set_id, cortype, corlevel = parts
-            corlevel = int(corlevel)
-        else:
-            cortype, corlevel = corruption_type, corruption_level
-        if cortype is None or cortype not in corruption_types:
+        if corruption_type is None or corruption_type not in corruption_types:
             raise ValueError(f"Supported corruption types are: {corruption_types}")
-        if corlevel is None or corlevel not in [1,2,3,4,5]:
+        if corruption_level is None or corruption_level not in [1,2,3,4,5]:
             raise ValueError("corruption_level should be an integer between 1 and 5.")
-        testdir = os.path.join(data_root, ID_to_DIRNAME[set_id], cortype, str(corlevel))
+        testdir = os.path.join(data_root, ID_to_DIRNAME[set_id], corruption_type, str(corruption_level))
         testset = datasets.ImageFolder(testdir, transform=transform)
     elif 'cifar10c' in set_id or 'cifar100c' in set_id:
-        if len(set_id) > len('cifar100c'):
-            # e.g., cifar10c_brightness_5
-            parts = set_id.split('-')
-            assert len(parts) == 3 and parts[0] in ['cifar10c', 'cifar100c']
-            set_id, cortype, corlevel = parts
-            corlevel = int(corlevel)
-        else:
-            cortype, corlevel = corruption_type, corruption_level
-        if cortype is None or cortype not in corruption_types:
-            raise ValueError(f"Supported corruption types are: {corruption_types}")
-        if corlevel is None or corlevel not in [1,2,3,4,5]:
-            raise ValueError("corruption_level should be an integer between 1 and 5.")
         testdir = os.path.join(data_root, ID_to_DIRNAME[set_id])
         if set_id == 'cifar10c':
-            testset = CIFAR10C(testdir, cortype, corlevel, transform)
+            testset = CIFAR10C(testdir, corruption_type, corruption_level, transform)
         elif set_id == 'cifar100c':
-            testset = CIFAR100C(testdir, cortype, corlevel, transform)
+            testset = CIFAR100C(testdir, corruption_type, corruption_level, transform)
         else:
             raise NotImplementedError
     elif set_id in ['cifar10', 'cifar100']:
         testdir = os.path.join(data_root, ID_to_DIRNAME[set_id])
         if set_id == 'cifar10':
-            testset = CIFAR10_Dataset(testdir, split='test', transform=transform, download=True)
+            testset = CIFAR10_Dataset(testdir, split=mode, transform=transform, download=True)
         elif set_id == 'cifar100':
-            testset = CIFAR100_Dataset(testdir, split='test', transform=transform, download=True)
+            testset = CIFAR100_Dataset(testdir, split=mode, transform=transform, download=True)
     else:
         raise NotImplementedError
         

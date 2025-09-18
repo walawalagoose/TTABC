@@ -80,7 +80,7 @@ def main(args):
                 # Write args to the file
                 for arg, value in vars(args).items():
                     f.write(f"{arg}: {value}\n")
-        
+                    
         val_dataset, val_loader, classnames = create_dataloader(args, set_id)
         if args.cocoop:
             tpt_methods.model.prompt_generator.reset_classnames(classnames, args.arch)

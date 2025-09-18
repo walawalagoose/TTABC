@@ -73,10 +73,12 @@ def create_dataloader(args, set_id):
         # fine-grained classification datasets
         classnames = eval("{}_classes".format(set_id.lower()))
     elif 'cifar' in set_id:
-        if set_id == 'cifar10' or set_id == 'cifar10c':
+        if 'cifar10' in set_id:
             classnames = cifar10_classes
-        else:
+        elif 'cifar100' in set_id:
             classnames = cifar100_classes
+        else:
+            raise NotImplementedError
     else:
         assert set_id in ['A', 'R', 'K', 'V', 'I', 'imagenetc'] 
         classnames_all = imagenet_classes
@@ -92,8 +94,14 @@ def create_dataloader(args, set_id):
         
         else:
             classnames = classnames_all
-    if set_id in ['imagenetc', 'cifar10c', 'cifar100c']:
-        val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode, corruption_type=args.corruption_type, corruption_level=args.corruption_level)
+    if 'imagenetc' in set_id or 'cifar10c' in set_id or 'cifar100c' in set_id:
+        if '-' in set_id:
+            # e.g., cifar10c-brightness-5
+            parts = set_id.split('-')
+            assert len(parts) == 3 and parts[0] in ['cifar10c', 'cifar100c', 'imagenetc']
+            val_dataset = build_dataset(parts[0], data_transform, args.data, mode=args.dataset_mode, corruption_type=parts[1], corruption_level=int(parts[2]))
+        else:
+            val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode, corruption_type=args.corruption_type, corruption_level=args.corruption_level)
     else:
         val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode)
     
