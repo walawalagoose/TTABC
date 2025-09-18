@@ -7,6 +7,11 @@ import math
 
 algorithm_defaults = {
     "tpt": {
+        "tpt": True,
+        "prompt_type": 'T',
+        # "vp_type": 'lor_vp',
+        "load": None,
+        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -16,6 +21,11 @@ algorithm_defaults = {
         "n_ctx": 4,  # number of prompt tokens
     },
     "ctpt": {
+        "tpt": True,
+        "prompt_type": 'T',
+        # "vp_type": 'lor_vp',
+        "load": None,
+        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -27,6 +37,11 @@ algorithm_defaults = {
         "two_step": False,  # whether to use two-step training
     },
     "otpt": {
+        "tpt": True,
+        "prompt_type": 'T',
+        # "vp_type": 'lor_vp',
+        "load": None,
+        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -38,6 +53,11 @@ algorithm_defaults = {
         "two_step": False,  # whether to use two-step training
     },
     "ntpt": {
+        "tpt": True,
+        "prompt_type": 'T',
+        # "vp_type": 'lor_vp',
+        "load": None,
+        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.

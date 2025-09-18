@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
 from data.hoi_dataset import BongardDataset
+from data.cifar_dataset import CIFAR10C, CIFAR100C, CIFAR10_Dataset, CIFAR100_Dataset
 try:
     from torchvision.transforms import InterpolationMode
     BICUBIC = InterpolationMode.BICUBIC
@@ -34,7 +35,12 @@ ID_to_DIRNAME={
     'food101': 'Food101',
     'sun397': 'SUN397',
     'aircraft': 'fgvc_aircraft',
-    'eurosat': 'eurosat'
+    'eurosat': 'eurosat',
+    'imagenetc': 'imagenet-c',
+    'cifar10c': 'CIFAR-10-C',
+    'cifar100c': 'CIFAR-100-C',
+    'cifar10': 'CIFAR-10',
+    'cifar100': 'CIFAR-100',
 }
 
 distortions = ['gaussian_noise', 'shot_noise', 'impulse_noise',
@@ -43,8 +49,14 @@ distortions = ['gaussian_noise', 'shot_noise', 'impulse_noise',
                 'brightness', 'contrast', 'elastic_transform',
                 'pixelate','fog','speckle_noise','saturate', 'spatter', 'gaussian_blur']
 
+corruption_types = ["gaussian_noise", "shot_noise", "impulse_noise", 
+                   "defocus_blur", "glass_blur", "motion_blur", "zoom_blur",
+                   "snow", "frost", "fog", "brightness", 
+                   "contrast", "elastic_transform", "pixelate", "jpeg_compression",
+                   "speckle_noise", "saturate", "spatter", "gaussian_blur",]
 
-def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split="all", bongard_anno=False):
+
+def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split="all", bongard_anno=False, corruption_type=None, corruption_level=None):
     if set_id == 'I':
         # ImageNet validation set
         testdir = os.path.join(os.path.join(data_root, ID_to_DIRNAME[set_id]), 'val')
@@ -62,6 +74,46 @@ def build_dataset(set_id, transform, data_root, mode='test', n_shot=None, split=
         assert isinstance(transform, Tuple)
         base_transform, query_transform = transform
         testset = BongardDataset(data_root, split, mode, base_transform, query_transform, bongard_anno)
+    elif 'imagenetc' in set_id:
+        if len(set_id) > len('imagenetc'):
+            parts = set_id.split('_')
+            assert len(parts) == 3 and parts[0] in ['imagenetc']
+            set_id, cortype, corlevel = parts
+            corlevel = int(corlevel)
+        else:
+            cortype, corlevel = corruption_type, corruption_level
+        if cortype is None or cortype not in corruption_types:
+            raise ValueError(f"Supported corruption types are: {corruption_types}")
+        if corlevel is None or corlevel not in [1,2,3,4,5]:
+            raise ValueError("corruption_level should be an integer between 1 and 5.")
+        testdir = os.path.join(data_root, ID_to_DIRNAME[set_id], cortype, str(corlevel))
+        testset = datasets.ImageFolder(testdir, transform=transform)
+    elif 'cifar10c' in set_id or 'cifar100c' in set_id:
+        if len(set_id) > len('cifar100c'):
+            # e.g., cifar10c_brightness_5
+            parts = set_id.split('_')
+            assert len(parts) == 3 and parts[0] in ['cifar10c', 'cifar100c']
+            set_id, cortype, corlevel = parts
+            corlevel = int(corlevel)
+        else:
+            cortype, corlevel = corruption_type, corruption_level
+        if cortype is None or cortype not in corruption_types:
+            raise ValueError(f"Supported corruption types are: {corruption_types}")
+        if corlevel is None or corlevel not in [1,2,3,4,5]:
+            raise ValueError("corruption_level should be an integer between 1 and 5.")
+        testdir = os.path.join(data_root, ID_to_DIRNAME[set_id])
+        if set_id == 'cifar10c':
+            testset = CIFAR10C(testdir, cortype, corlevel, transform)
+        elif set_id == 'cifar100c':
+            testset = CIFAR100C(testdir, cortype, corlevel, transform)
+        else:
+            raise NotImplementedError
+    elif set_id in ['cifar10', 'cifar100']:
+        testdir = os.path.join(data_root, ID_to_DIRNAME[set_id])
+        if set_id == 'cifar10':
+            testset = CIFAR10_Dataset(testdir, split='test', transform=transform, download=True)
+        elif set_id == 'cifar100':
+            testset = CIFAR100_Dataset(testdir, split='test', transform=transform, download=True)
     else:
         raise NotImplementedError
         

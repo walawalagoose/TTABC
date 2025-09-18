@@ -26,6 +26,7 @@ import torchvision.models as models
 from clip.custom_clip import get_coop
 from clip.cocoop import get_cocoop
 from data.imagnet_prompts import imagenet_classes
+from data.cifar_prompts import cifar10_classes, cifar100_classes
 from data.datautils import AugMixAugmenter, build_dataset
 from data.cls_to_names import *
 from data.fewshot_datasets import fewshot_datasets
@@ -68,11 +69,16 @@ def create_dataloader(args, set_id):
     print("evaluating: {}".format(set_id))
     # reset the model
     # Reset classnames of custom CLIP model
-    if len(set_id) > 1: 
+    if len(set_id) > 1 and 'imagenet' not in set_id and 'cifar' not in set_id: 
         # fine-grained classification datasets
         classnames = eval("{}_classes".format(set_id.lower()))
+    elif 'cifar' in set_id:
+        if set_id == 'cifar10' or set_id == 'cifar10c':
+            classnames = cifar10_classes
+        else:
+            classnames = cifar100_classes
     else:
-        assert set_id in ['A', 'R', 'K', 'V', 'I']
+        assert set_id in ['A', 'R', 'K', 'V', 'I', 'imagenetc'] 
         classnames_all = imagenet_classes
         classnames = []
         if set_id in ['A', 'R', 'V']:
@@ -86,8 +92,10 @@ def create_dataloader(args, set_id):
         
         else:
             classnames = classnames_all
-
-    val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode)
+    if set_id in ['imagenetc', 'cifar10c', 'cifar100c']:
+        val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode, corruption_type=args.corruption_type, corruption_level=args.corruption_level)
+    else:
+        val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode)
     
     if args.down_sample_ratio is not None:
         # 获取数据集大小和随机采样索引
