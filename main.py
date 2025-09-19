@@ -126,7 +126,7 @@ if __name__ == '__main__':
     parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
     parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')
     parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
-    parser.add_argument('--run_type' , type=str, default='baseline_tpt', choices=['baseline', 'tpt', 'ctpt', 'tpt_ts', 'otpt', 'ntpt'], help='which method to use')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'tpt_ts', 'otpt', 'ntpt'], help='which method to use')
     # parameters and device
     parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')

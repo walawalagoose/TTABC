@@ -23,8 +23,9 @@ except ImportError:
     BICUBIC = Image.BICUBIC
 import torchvision.models as models
 
-from clip.custom_clip import get_coop
+from clip.custom_clip import get_coop, get_zero_shot
 from clip.cocoop import get_cocoop
+from clip.visual_prompting import get_visual_prompt_clip
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, load_model_weight
@@ -40,16 +41,16 @@ import os
 
 
 def create_model(args):
-    # create model (zero-shot clip model (ViT-L/14@px336) with promptruning)
+    # create model (zero-shot clip model (ViT-L/14@px336) with prompt tuning)
     if args.test_sets in fewshot_datasets:
         classnames = eval("{}_classes".format(args.test_sets.lower()))
     else:
         classnames = imagenet_classes
     if not args.tpt:
         # TODO: add zero-shot
-        # model = get_zero_shot(args.arch, args.test_sets, args.gpu)
-        # model_state = deepcopy(model.state_dict())
-        pass
+        # having been modified by hjz, please delete this line after checking
+        model = get_zero_shot(args.arch, args.test_sets, args.gpu)
+        model_state = deepcopy(model.state_dict())
     elif args.prompt_type == 'T':
         if args.cocoop:
             model = get_cocoop(args.arch, args.test_sets, 'cpu', args.n_ctx)
@@ -83,10 +84,15 @@ def create_model(args):
     elif args.prompt_type == 'V': # visual prompt
         assert args.load is None and args.cocoop is False
         # TODO: add visual prompt model
-        # model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
-        # model_state = deepcopy(model.state_dict())
-        # require_grad_(False) for all except visual prompt generator
-        pass
+        # having been modified by hjz, please delete this line after checking
+        model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
+        model_state = deepcopy(model.state_dict())
+        # require_grad_(False) for all except visual prompter
+        for name, param in model.named_parameters():
+            if "visual_prompter" not in name:
+                param.requires_grad_(False)
+        # TODO: customize when vp works with coop/cocoop
+        print("Use visual prompt tuning with visual backbone {}, visual prompt type {}".format(args.arch, args.vp_type))
     
     if not torch.cuda.is_available():
         print('using CPU, this will be slow')
@@ -111,8 +117,10 @@ def set_optimizer(args, model):
                 optim_state = deepcopy(optimizer.state_dict())
         elif args.prompt_type == 'V':
             # TODO: add visual prompt optimizer
-            # optimizer = None
-            # optim_state = None
-            pass
+            # having been modified by hjz, please delete this line after checking
+            trainable_param = model.get_trainable_parameters()
+            optimizer = torch.optim.AdamW(trainable_param, args.lr) # TODO, 不确定AdamW是否合适
+            # optimizer = torch.optim.SGD(trainable_param, args.lr, momentum=0.9, weight_decay=1e-4)
+            optim_state = deepcopy(optimizer.state_dict())
     
     return optimizer, optim_state

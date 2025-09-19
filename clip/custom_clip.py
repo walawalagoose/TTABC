@@ -330,6 +330,68 @@ class ClipTestTimeTuning(nn.Module):
             return self.inference(input)
 
 
+class ClipZeroShot(nn.Module):
+    def __init__(self, device, classnames, arch="ViT-B/16"):
+        super(ClipZeroShot, self).__init__()
+        clip_model, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
+        self.image_encoder = clip_model.visual
+        self.text_encoder = TextEncoder(clip_model).to(device)
+        self.logit_scale = clip_model.logit_scale.data
+        self.device = device
+        self.dtype = clip_model.dtype
+        
+        # prepare the prompts in advance
+        self.classnames = classnames
+        self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
+        self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(device)
+        # compute text features and register as buffer
+        with torch.no_grad():
+            text_embeddings = clip_model.token_embedding(self.tokenized_prompts)
+            text_features = self.text_encoder(text_embeddings, self.tokenized_prompts)
+            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+            self.register_buffer("text_features", text_features)
+            
+    @property
+    def dtype_property(self):  # 添加 dtype 属性访问器
+        return self.image_encoder.conv1.weight.dtype
+    
+    def reset(self):
+        pass
+    
+    def reset_classnames(self, classnames, arch):
+        pass
+    
+    def get_text_features(self):
+        return self.text_features
+    
+    def inference(self, image):
+        with torch.no_grad():
+            # sharing the same interface as forward()
+            return self.forward(image)
+    
+    def forward(self, image):
+        image_features = self.image_encoder(image.type(self.dtype))
+        text_features = self.get_text_features()
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        
+        logit_scale = self.logit_scale.exp()
+        logits = logit_scale * image_features @ text_features.t()
+        return logits
+
+
+def get_zero_shot(clip_arch, test_set, device):
+    if test_set in fewshot_datasets:
+        classnames = eval("{}_classes".format(test_set.lower()))
+    elif test_set == 'bongard':
+        classnames = ['True', 'False']
+    else:
+        classnames = imagenet_classes
+
+    model = ClipZeroShot(device, classnames, arch=clip_arch)
+
+    return model
+
+
 def get_coop(clip_arch, test_set, device, n_ctx, ctx_init, learned_cls=False):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))

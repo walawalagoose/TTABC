@@ -6,6 +6,18 @@
 import math
 
 algorithm_defaults = {
+    "zero_shot": {
+        "tpt": False,
+        "prompt_type": None,
+        "load": None,
+        "cocoop": False,
+    },
+    "baseline": {
+        "tpt": False,
+        "prompt_type": 'T', 
+        # "load": None,
+        # "cocoop": False,
+    },
     "tpt": {
         "tpt": True,
         "prompt_type": 'T',
