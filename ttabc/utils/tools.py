@@ -190,3 +190,23 @@ def avg_entropy(outputs):
     min_real = torch.finfo(avg_logits.dtype).min
     avg_logits = torch.clamp(avg_logits, min=min_real)
     return -(avg_logits * torch.exp(avg_logits)).sum(dim=-1)
+
+def reset_classnames(args, tpt_methods, class_names):
+    if args.prompt_type == 'N':
+        # TODO: for zero shot
+        raise NotImplementedError('reset for zero shot backbone not implemented yet')
+        pass
+    elif args.prompt_type == 'T':
+        if args.cocoop:
+            tpt_methods.model.prompt_generator.reset_classnames(class_names, args.arch)
+            tpt_methods.model = tpt_methods.model.cpu()
+            model_state = tpt_methods.model.state_dict()
+            tpt_methods.model = tpt_methods.model.cuda(args.gpu)
+        else:
+            tpt_methods.model.reset_classnames(class_names, args.arch)
+    elif args.prompt_type == 'V':
+        # TODO: for visual prompt backbone
+        raise NotImplementedError('reset for visual prompt backbone not implemented yet')
+        pass
+    else:
+        raise NotImplementedError
