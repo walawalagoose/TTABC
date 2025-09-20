@@ -46,9 +46,7 @@ def create_model(args):
         classnames = eval("{}_classes".format(args.test_sets.lower()))
     else:
         classnames = imagenet_classes
-    if not args.tpt:
-        # TODO: add zero-shot
-        # having been modified by hjz, please delete this line after checking
+    if args.prompt_type == 'N':
         model = get_zero_shot(args.arch, args.test_sets, args.gpu)
         model_state = deepcopy(model.state_dict())
     elif args.prompt_type == 'T':
@@ -82,9 +80,8 @@ def create_model(args):
         
         print("=> Model created: visual backbone {}".format(args.arch))
     elif args.prompt_type == 'V': # visual prompt
-        assert args.load is None and args.cocoop is False
-        # TODO: add visual prompt model
-        # having been modified by hjz, please delete this line after checking
+        assert args.load is None and args.cocoop is False, "Not implemented: visual prompt with coop/cocoop"
+        assert args.vp_type in ['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], "Visual prompt type not supported"
         model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
         model_state = deepcopy(model.state_dict())
         # require_grad_(False) for all except visual prompter
@@ -116,8 +113,6 @@ def set_optimizer(args, model):
                 optimizer = torch.optim.AdamW(trainable_param, args.lr)
                 optim_state = deepcopy(optimizer.state_dict())
         elif args.prompt_type == 'V':
-            # TODO: add visual prompt optimizer
-            # having been modified by hjz, please delete this line after checking
             trainable_param = model.get_trainable_parameters()
             optimizer = torch.optim.AdamW(trainable_param, args.lr) # TODO, 不确定AdamW是否合适
             # optimizer = torch.optim.SGD(trainable_param, args.lr, momentum=0.9, weight_decay=1e-4)

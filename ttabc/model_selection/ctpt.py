@@ -184,3 +184,11 @@ class CTPT(BaseMethod):
 
         return [top1.avg, top5.avg]
     
+    def reset_to_dataset(self, class_names):
+        if self.args.cocoop:
+            self.model.prompt_generator.reset_classnames(class_names, self.args.arch)
+            self.model = self.model.cpu()
+            self.model_state = self.model.state_dict()
+            self.model = self.model.cuda(self.args.gpu)
+        else:
+            self.model.reset_classnames(class_names, self.args.arch)

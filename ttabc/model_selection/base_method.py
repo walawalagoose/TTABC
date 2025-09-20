@@ -54,3 +54,6 @@ class BaseMethod:
 
     def test_time_adapt_eval(self, val_loader, result_dict=None):
         pass
+
+    def reset_to_dataset(self, class_names):
+        pass
