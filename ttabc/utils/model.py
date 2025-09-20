@@ -46,7 +46,7 @@ def create_model(args):
         classnames = eval("{}_classes".format(args.test_sets.lower()))
     else:
         classnames = imagenet_classes
-    if args.prompt_type == 'N':
+    if args.prompt_type == 'N' or args.prompt_type is None:
         model = get_zero_shot(args.arch, args.test_sets, args.gpu)
         model_state = deepcopy(model.state_dict())
     elif args.prompt_type == 'T':

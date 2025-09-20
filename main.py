@@ -55,7 +55,8 @@ def main(args):
     assert args.gpu is not None
     set_random_seed(args.seed)
     print("Use GPU: {} for training".format(args.gpu))
-
+    # print the run_type and prompt_type
+    print(f"Run type: {args.run_type}, Prompt type: {args.prompt_type}")
     
     tpt_methods = get_method(args.run_type)(args)
 
@@ -142,6 +143,7 @@ if __name__ == '__main__':
 
 
     args = parser.parse_args()
+    # Note: some critical hyperparameters will be replaced by the defaults in configs/algorithms.py
     args = config_hparams(args)
 
     main(args)

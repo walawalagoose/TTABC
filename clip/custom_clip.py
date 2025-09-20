@@ -334,6 +334,7 @@ class ClipZeroShot(nn.Module):
     def __init__(self, device, classnames, arch="ViT-B/16"):
         super(ClipZeroShot, self).__init__()
         clip_model, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
+        self.clip_model = clip_model
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model).to(device)
         self.logit_scale = clip_model.logit_scale.data
@@ -342,15 +343,21 @@ class ClipZeroShot(nn.Module):
         
         # prepare the prompts in advance
         self.classnames = classnames
-        self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
-        self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(device)
         # compute text features and register as buffer
+        self._build_text_features(classnames)
+    
+    def _build_text_features(self, classnames):
+        self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
+        self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(self.device)
+        
         with torch.no_grad():
-            text_embeddings = clip_model.token_embedding(self.tokenized_prompts)
+            text_embeddings = self.clip_model.token_embedding(self.tokenized_prompts)
             text_features = self.text_encoder(text_embeddings, self.tokenized_prompts)
             text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-            self.register_buffer("text_features", text_features)
-            
+        if 'text_features' in self._buffers:
+            del self._buffers['text_features']
+        self.register_buffer("text_features", text_features)
+         
     @property
     def dtype_property(self):  # 添加 dtype 属性访问器
         return self.image_encoder.conv1.weight.dtype
@@ -359,7 +366,9 @@ class ClipZeroShot(nn.Module):
         pass
     
     def reset_classnames(self, classnames, arch):
-        pass
+        # There is no need to reset the arch for zero-shot CLIP actually
+        self.classnames = classnames
+        self._build_text_features(classnames)
     
     def get_text_features(self):
         return self.text_features

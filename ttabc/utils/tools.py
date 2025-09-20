@@ -192,10 +192,10 @@ def avg_entropy(outputs):
     return -(avg_logits * torch.exp(avg_logits)).sum(dim=-1)
 
 def reset_classnames(args, tpt_methods, class_names):
-    if args.prompt_type == 'N':
+    if args.prompt_type in ['N', None]:
         # TODO: for zero shot
-        raise NotImplementedError('reset for zero shot backbone not implemented yet')
-        pass
+        # hjz modified, please delete this line after checking
+        tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'T':
         if args.cocoop:
             tpt_methods.model.prompt_generator.reset_classnames(class_names, args.arch)
@@ -206,7 +206,7 @@ def reset_classnames(args, tpt_methods, class_names):
             tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'V':
         # TODO: for visual prompt backbone
-        raise NotImplementedError('reset for visual prompt backbone not implemented yet')
-        pass
+        # hjz modified, please delete this line after checking
+        tpt_methods.model.reset_classnames(class_names, args.arch)
     else:
         raise NotImplementedError

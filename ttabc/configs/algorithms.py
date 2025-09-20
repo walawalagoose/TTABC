@@ -8,7 +8,7 @@ import math
 algorithm_defaults = {
     "zero_shot": {
         "tpt": False,
-        "prompt_type": None,
+        "prompt_type": 'N',
         "load": None,
         "cocoop": False,
     },
