@@ -22,8 +22,8 @@ algorithm_defaults = {
         "tpt": True,
         "prompt_type": 'T',
         # "vp_type": 'lor_vp',
-        "load": None,
-        "cocoop": False,
+        "load": 'checkpoints/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
+        "cocoop": True,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.

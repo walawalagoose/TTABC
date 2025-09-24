@@ -207,19 +207,20 @@ class CoCoOpCLIP(nn.Module):
         text_features = self.text_encoder(prompts, tokenized_prompts)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
-        #[c-tpt] --------------------------------------------
-        if self.l2_norm_cal:
-            prompt_mean = text_features.mean(0)
-            feature_distance = text_features - prompt_mean
-            l2_norm = torch.linalg.norm(feature_distance, dim=-1)
-            l2_norm_mean = l2_norm.mean()
+        # TODO: this is specified for C-TPT, how to generalize?
+        # #[c-tpt] --------------------------------------------
+        # if self.l2_norm_cal:
+        #     prompt_mean = text_features.mean(0)
+        #     feature_distance = text_features - prompt_mean
+        #     l2_norm = torch.linalg.norm(feature_distance, dim=-1)
+        #     l2_norm_mean = l2_norm.mean()
             
-            #for saving to csv file
-            self.l2_norm_mean = l2_norm_mean.item()
+        #     #for saving to csv file
+        #     self.l2_norm_mean = l2_norm_mean.item()
             
-            #for training
-            self.l2_norm_mean_training = l2_norm_mean
-        #-----------------------------------------------------
+        #     #for training
+        #     self.l2_norm_mean_training = l2_norm_mean
+        # #-----------------------------------------------------
         
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         

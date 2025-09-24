@@ -90,7 +90,7 @@ def available_models() -> List[str]:
     return list(_MODELS.keys())
 
 
-def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu", jit: bool = False, download_root: str = None):
+def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_available() else "cpu", jit: bool = False, download_root: str = None, mode=None): # new: 'mode' was added for maple & vpt
     """Load a CLIP model
 
     Parameters
@@ -135,7 +135,19 @@ def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_a
 
     embed_dim = model.state_dict()["text_projection"].shape[1]
     if not jit:
-        model = build_model(state_dict or model.state_dict()).to(device)
+        if 'maple' in mode:
+            from .model_maple import build_model_maple
+            design_details = {
+            'trainer': 'MaPLe',
+            'vision_depth': 0, 
+            'language_depth': 0, 
+            'vision_ctx': 0, 
+            'language_ctx': 0, 
+            'maple_length': 2  # MaPLe提示长度
+            }
+            model = build_model_maple(state_dict or model.state_dict(), design_details).to(device)
+        else:
+            model = build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
             model.float()
         return model, embed_dim, _transform(model.visual.input_resolution)

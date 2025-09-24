@@ -25,6 +25,7 @@ import torchvision.models as models
 
 from clip.custom_clip import get_coop, get_zero_shot
 from clip.cocoop import get_cocoop
+from clip.maple import get_maple
 from clip.visual_prompting import get_visual_prompt_clip
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
