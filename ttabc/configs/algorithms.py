@@ -8,22 +8,22 @@ import math
 algorithm_defaults = {
     "zero_shot": {
         "tpt": False,
-        "prompt_type": 'N',
+        "prompt_type": 'zs',
         "load": None,
-        "cocoop": False,
     },
     "baseline": {
         "tpt": False,
-        "prompt_type": 'T', 
+        # "prompt_type": 'coop', # actually it can be epuipped with any prompt type
+        "supported_list": ['zs', 'coop', 'cocoop', 'vp', 'maple'],
         # "load": None,
-        # "cocoop": False,
     },
     "tpt": {
         "tpt": True,
-        "prompt_type": 'T',
+        "prompt_type": 'coop', # can also be cocoop
+        "supported_list": ['coop', 'cocoop', 'vp'],
         # "vp_type": 'lor_vp',
-        "load": 'checkpoints/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
-        "cocoop": True,
+        # "load": 'checkpoints/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
+        # "load": None,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -34,10 +34,10 @@ algorithm_defaults = {
     },
     "ctpt": {
         "tpt": True,
-        "prompt_type": 'T',
+        "prompt_type": 'coop',
+        "supported_list": ['coop', 'cocoop', 'vp'],
         # "vp_type": 'lor_vp',
         "load": None,
-        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -50,10 +50,10 @@ algorithm_defaults = {
     },
     "otpt": {
         "tpt": True,
-        "prompt_type": 'T',
+        "prompt_type": 'coop',
+        "supported_list": ['coop', 'cocoop', 'vp'],
         # "vp_type": 'lor_vp',
         "load": None,
-        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -66,10 +66,10 @@ algorithm_defaults = {
     },
     "ntpt": {
         "tpt": True,
-        "prompt_type": 'T',
+        "prompt_type": 'coop',
+        "supported_list": ['coop', 'cocoop', 'vp'],
         # "vp_type": 'lor_vp',
         "load": None,
-        "cocoop": False,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.

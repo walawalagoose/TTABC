@@ -22,7 +22,7 @@ class TPT(BaseMethod):
         self.temperature_value = {'ViT': 1.16, 'RN': 1.15} #for temperature scaling experiments 
 
     def test_time_tuning(self, inputs):
-        if self.args.cocoop:
+        if self.args.prompt_type == 'cocoop':
             image_feature, pgen_ctx = inputs
             pgen_ctx.requires_grad = True
             self.optimizer = torch.optim.AdamW([pgen_ctx], self.args.lr)
@@ -30,7 +30,7 @@ class TPT(BaseMethod):
         selected_idx = None
         for j in range(self.args.tta_steps):
             with torch.amp.autocast(device_type='cuda'):
-                if self.args.cocoop:
+                if self.args.prompt_type == 'cocoop':
                     output = self.model((image_feature, pgen_ctx))
                 else:
                     output = self.model(inputs) 
@@ -47,7 +47,7 @@ class TPT(BaseMethod):
             # Unscales the gradients of optimizer's assigned params in-place
             self.scaler.step(self.optimizer)
             self.scaler.update()
-        if self.args.cocoop:
+        if self.args.prompt_type == 'cocoop':
             return pgen_ctx
 
         return
@@ -64,7 +64,7 @@ class TPT(BaseMethod):
 
         # reset model and switch to evaluate mode
         self.model.eval()
-        if not self.args.cocoop: # no need to reset cocoop because it's fixed
+        if self.args.prompt_type != 'cocoop': # no need to reset cocoop because it's fixed
             with torch.no_grad():
                 self.model.reset()
         end = time.time()
@@ -90,7 +90,7 @@ class TPT(BaseMethod):
                 images = torch.cat(images, dim=0)
 
             # reset the tunable prompt to its initial state
-            if not self.args.cocoop: # no need to reset cocoop because it's fixed
+            if self.args.prompt_type != 'cocoop': # no need to reset cocoop because it's fixed
                 if self.args.tta_steps > 0:
                     with torch.no_grad():
                         self.model.reset()
@@ -107,12 +107,12 @@ class TPT(BaseMethod):
 
             # The actual inference goes here
             if self.args.tpt:
-                if self.args.cocoop:
+                if self.args.prompt_type == 'cocoop':
                     image_feature = image_feature[0].unsqueeze(0)
             
             with torch.no_grad():
                 with torch.amp.autocast(device_type='cuda'):
-                    if self.args.cocoop:
+                    if self.args.prompt_type == 'cocoop':
                         output = self.model((image_feature, pgen_ctx))
                     else:
                         output = self.model(image)

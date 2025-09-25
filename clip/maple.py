@@ -3,11 +3,13 @@ import torch.nn as nn
 from torch.nn import functional as F
 import copy
 import clip
-from simple_tokenizer import SimpleTokenizer as _Tokenizer
+from .simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 from data.imagnet_prompts import imagenet_classes
 from data.cls_to_names import *
 from data.fewshot_datasets import fewshot_datasets
+
+import copy as _copy
 
 # import os
 _tokenizer = _Tokenizer()
@@ -60,6 +62,8 @@ class MultiModalPromptLearner(nn.Module):
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
             prompt = clip.tokenize(ctx_init)
+            # added: to avoid device error
+            prompt = prompt.to(clip_model.token_embedding.weight.device)
             with torch.no_grad():
                 embedding = clip_model.token_embedding(prompt).type(dtype)
             ctx_vectors = embedding[0, 1: 1 + n_ctx, :]
@@ -99,8 +103,11 @@ class MultiModalPromptLearner(nn.Module):
         prompts = [self.prompt_prefix + " " + name + "." for name in classnames]
 
         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts]).to(self.ctx.device)  # (n_cls, n_tkn)
+        # added: to avoid device error
+        te_device = self.clip_model.token_embedding.weight.device
+        tokenized_prompts = tokenized_prompts.to(te_device)
         with torch.no_grad():
-            embedding = self.clip_model.token_embedding(tokenized_prompts).to(self.ctx.device)
+            embedding = self.clip_model.token_embedding(tokenized_prompts).type(self.ctx.dtype)
 
         self.register_buffer("token_prefix", embedding[:, :1, :], persistent=False)  # SOS
         self.register_buffer("token_suffix", embedding[:, 1 + self.n_ctx:, :], persistent=False)  # CLS, EOS
@@ -207,8 +214,11 @@ class MaPLe(nn.Module):
         )
         
         self.model.to(device)
-        if device == "cuda" and torch.cuda.device_count() > 1:
-            self.model = nn.DataParallel(self.model)
+        # if device == "cuda" and torch.cuda.device_count() > 1:
+        #     self.model = nn.DataParallel(self.model)
+        
+        # Added for tta, store the initial state dict
+        self._initial_state = _copy.deepcopy(self.model.state_dict())
             
     def forward(self, image):
         if self.prec == "amp":
@@ -221,6 +231,10 @@ class MaPLe(nn.Module):
             module = self.model.module if isinstance(self.model, nn.DataParallel) else self.model
             module.prompt_learner.reset_classnames(classnames)
             module.tokenized_prompts = module.prompt_learner.tokenized_prompts
+            
+    def reset(self):
+        # Recover to the initial prompt parameters; do not change current classnames/tokenized_prompts
+        self.model.load_state_dict(self._initial_state, strict=False)
     
     def load_checkpoint(self, checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location=self.device)

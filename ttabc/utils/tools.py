@@ -119,7 +119,7 @@ def load_model_weight(load_path, model, device, args):
             best_acc1 = checkpoint['best_acc1']
         except:
             best_acc1 = torch.tensor(0)
-        if device is not 'cpu':
+        if device != 'cpu':
             # best_acc1 may be from a checkpoint from a different GPU
             best_acc1 = best_acc1.to(device)
         try:
@@ -192,21 +192,20 @@ def avg_entropy(outputs):
     return -(avg_logits * torch.exp(avg_logits)).sum(dim=-1)
 
 def reset_classnames(args, tpt_methods, class_names):
-    if args.prompt_type in ['N', None]:
-        # TODO: for zero shot
-        # hjz modified, please delete this line after checking
+    if args.prompt_type in ['zs', None]:
         tpt_methods.model.reset_classnames(class_names, args.arch)
-    elif args.prompt_type == 'T':
-        if args.cocoop:
+    elif args.prompt_type == 'coop':
+        tpt_methods.model.reset_classnames(class_names, args.arch)
+    elif args.prompt_type == 'cocoop':
             tpt_methods.model.prompt_generator.reset_classnames(class_names, args.arch)
             tpt_methods.model = tpt_methods.model.cpu()
             model_state = tpt_methods.model.state_dict()
-            tpt_methods.model = tpt_methods.model.cuda(args.gpu)
-        else:
-            tpt_methods.model.reset_classnames(class_names, args.arch)
-    elif args.prompt_type == 'V':
-        # TODO: for visual prompt backbone
-        # hjz modified, please delete this line after checking
+            tpt_methods.model = tpt_methods.model.cuda(args.gpu)   
+    elif args.prompt_type == 'vp':
+        # TODO: differtent visual prompt backbone (vp+coop/cocoop)
         tpt_methods.model.reset_classnames(class_names, args.arch)
+    elif args.prompt_type == 'maple':
+        # MaPLe's reset_classnames() only needs classnames
+        tpt_methods.model.reset_classnames(class_names)
     else:
         raise NotImplementedError

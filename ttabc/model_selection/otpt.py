@@ -25,7 +25,7 @@ class OTPT(BaseMethod):
         output = None
         output2 = None
         single_output = None
-        if self.args.cocoop:
+        if self.args.prompt_type == 'cocoop':
             image_feature, pgen_ctx = inputs
             pgen_ctx.requires_grad = True
             self.optimizer = torch.optim.AdamW([pgen_ctx], self.args.lr)
@@ -33,7 +33,7 @@ class OTPT(BaseMethod):
         selected_idx = None
         for j in range(self.args.tta_steps):
             with torch.amp.autocast(device_type='cuda'):
-                if self.args.cocoop:
+                if self.args.prompt_type == 'cocoop':
                     output = self.model((image_feature, pgen_ctx))
                 else:
                     output = self.model(inputs) 
@@ -55,7 +55,7 @@ class OTPT(BaseMethod):
                 loss = 0
 
                 with torch.amp.autocast(device_type='cuda'):
-                    if self.args.cocoop:
+                    if self.args.prompt_type == 'cocoop':
                         output2 = self.model((image_feature, pgen_ctx))
                     else:
                         output2 = self.model(inputs) 
@@ -130,7 +130,7 @@ class OTPT(BaseMethod):
             self.scaler.step(self.optimizer)
             self.scaler.update()
 
-        if self.args.cocoop:
+        if self.args.prompt_type == 'cocoop':
             return pgen_ctx
 
         return None
@@ -147,7 +147,7 @@ class OTPT(BaseMethod):
 
         # reset model and switch to evaluate mode
         self.model.eval()
-        if not self.args.cocoop: # no need to reset cocoop because it's fixed
+        if self.args.prompt_type != 'cocoop': # no need to reset cocoop because it's fixed
             with torch.no_grad():
                 self.model.reset()
         end = time.time()
@@ -175,7 +175,7 @@ class OTPT(BaseMethod):
             self.args.image = image # for ctpt
 
             # reset the tunable prompt to its initial state
-            if not self.args.cocoop: # no need to reset cocoop because it's fixed
+            if self.args.prompt_type != 'cocoop': # no need to reset cocoop because it's fixed
                 if self.args.tta_steps > 0:
                     with torch.no_grad():
                         self.model.reset()
@@ -192,12 +192,12 @@ class OTPT(BaseMethod):
 
             # The actual inference goes here
             if self.args.tpt:
-                if self.args.cocoop:
+                if self.args.prompt_type == 'cocoop':
                     image_feature = image_feature[0].unsqueeze(0)
             
             with torch.no_grad():
                 with torch.amp.autocast(device_type='cuda'):
-                    if self.args.cocoop:
+                    if self.args.prompt_type == 'cocoop':
                         output = self.model((image_feature, pgen_ctx))
                     else:
                         output = self.model(image)

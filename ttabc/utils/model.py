@@ -47,41 +47,38 @@ def create_model(args):
         classnames = eval("{}_classes".format(args.test_sets.lower()))
     else:
         classnames = imagenet_classes
-    if args.prompt_type == 'N' or args.prompt_type is None:
+        
+    if args.prompt_type in ['zs', None]:
         model = get_zero_shot(args.arch, args.test_sets, args.gpu)
         model_state = deepcopy(model.state_dict())
-    elif args.prompt_type == 'T':
-        if args.cocoop:
-            model = get_cocoop(args.arch, args.test_sets, 'cpu', args.n_ctx)
-            assert args.load is not None
-            load_model_weight(args.load, model, 'cpu', args) # to load to cuda: device="cuda:{}".format(args.gpu)
-            model_state = deepcopy(model.state_dict())
-        else:
-            model = get_coop(args.arch, args.test_sets, args.gpu, args.n_ctx, args.ctx_init)
-            if args.load is not None:
-                print("Use pre-trained soft prompt (CoOp) as initialization")
-                pretrained_ctx = torch.load(args.load)['state_dict']['ctx']
-                assert pretrained_ctx.size()[0] == args.n_ctx
-                with torch.no_grad():
-                    #model.prompt_learner[0].ctx.copy_(pretrained_ctx)
-                    #model.prompt_learner[0].ctx_init_state = pretrained_ctx
-
-                    model.prompt_learner.ctx.copy_(pretrained_ctx)
-                    model.prompt_learner.ctx_init_state = pretrained_ctx
-
-            model_state = None
-
-        for name, param in model.named_parameters():
-            if not args.cocoop:
-                if "prompt_learner" not in name:
-                    param.requires_grad_(False)
-            else:
-                if "text_encoder" not in name:
-                    param.requires_grad_(False)
         
-        print("=> Model created: visual backbone {}".format(args.arch))
-    elif args.prompt_type == 'V': # visual prompt
-        assert args.load is None and args.cocoop is False, "Not implemented: visual prompt with coop/cocoop"
+    elif args.prompt_type == 'coop':
+        model = get_coop(args.arch, args.test_sets, args.gpu, args.n_ctx, args.ctx_init)
+        if args.load is not None:
+            print("Use pre-trained soft prompt (CoOp) as initialization")
+            pretrained_ctx = torch.load(args.load)['state_dict']['ctx']
+            assert pretrained_ctx.size()[0] == args.n_ctx
+            with torch.no_grad():
+                #model.prompt_learner[0].ctx.copy_(pretrained_ctx)
+                #model.prompt_learner[0].ctx_init_state = pretrained_ctx
+                model.prompt_learner.ctx.copy_(pretrained_ctx)
+                model.prompt_learner.ctx_init_state = pretrained_ctx
+        model_state = None
+        for name, param in model.named_parameters():
+            if "prompt_learner" not in name:
+                param.requires_grad_(False)
+            
+    elif args.prompt_type == 'cocoop':
+        model = get_cocoop(args.arch, args.test_sets, 'cpu', args.n_ctx)
+        assert args.load is not None
+        load_model_weight(args.load, model, 'cpu', args) # to load to cuda: device="cuda:{}".format(args.gpu)
+        model_state = deepcopy(model.state_dict())
+        for name, param in model.named_parameters():
+            if "text_encoder" not in name:
+                param.requires_grad_(False)
+        
+    elif args.prompt_type == 'vp': # visual prompt
+        assert args.load is None and args.prompt_type in ['zs', None], "Not implemented: visual prompt with coop/cocoop" # TODO, future work: vp with coop/cocoop
         assert args.vp_type in ['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], "Visual prompt type not supported"
         model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
         model_state = deepcopy(model.state_dict())
@@ -90,9 +87,20 @@ def create_model(args):
             if "visual_prompter" not in name:
                 param.requires_grad_(False)
         # TODO: customize when vp works with coop/cocoop
-        print("Use visual prompt tuning with visual backbone {}, visual prompt type {}".format(args.arch, args.vp_type))
-    
+        
+    elif args.prompt_type == 'maple':
+        model = get_maple(
+            args.arch, args.test_sets, device='cuda' if torch.cuda.is_available() else 'cpu',
+            n_ctx=getattr(args, 'n_ctx', 2),
+            ctx_init=getattr(args, 'ctx_init', "a photo of a"),
+            prompt_depth=getattr(args, 'prompt_depth', 9)
+        )
+        model_state = model.state_dict()
+       
+    print(f"=> Model created: visual backbone {args.arch}, prompting type: {args.prompt_type}")
+        
     if not torch.cuda.is_available():
+        model = model.to(torch.device('cpu'))
         print('using CPU, this will be slow')
     else:
         assert args.gpu is not None
@@ -100,23 +108,46 @@ def create_model(args):
         model = model.cuda(args.gpu)
     return model, model_state
 
+# TODO：为方法设置optimizer（algorithm里）
 def set_optimizer(args, model):
-    if args.tpt is False:
+    
+    def _build_optimizer(args, params):
+        opt_name = getattr(args, "optimizer", "Adam").lower()
+        lr = getattr(args, "lr", 1e-4)
+        wd = getattr(args, "weight_decay", 1e-4)
+        if opt_name == "sgd":
+            momentum = getattr(args, "momentum", 0.9)
+            return torch.optim.SGD(params, lr=lr, momentum=momentum, weight_decay=wd)
+        elif opt_name == "adam":
+            betas = getattr(args, "betas", (0.9, 0.999))
+            return torch.optim.Adam(params, lr=lr, weight_decay=wd, betas=betas)
+        else:  # adamw
+            betas = getattr(args, "betas", (0.9, 0.999))
+            return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
+        
+    if args.tpt is False or args.prompt_type in ['zs', None]:
         optimizer = None
         optim_state = None
-    else:
-        if args.prompt_type == 'T':
-            if args.cocoop:
-                optimizer = None
-                optim_state = None
-            else:
-                trainable_param = model.prompt_learner.parameters()
-                optimizer = torch.optim.AdamW(trainable_param, args.lr)
-                optim_state = deepcopy(optimizer.state_dict())
-        elif args.prompt_type == 'V':
-            trainable_param = model.get_trainable_parameters()
-            optimizer = torch.optim.AdamW(trainable_param, args.lr) # TODO, 不确定AdamW是否合适
-            # optimizer = torch.optim.SGD(trainable_param, args.lr, momentum=0.9, weight_decay=1e-4)
-            optim_state = deepcopy(optimizer.state_dict())
+        
+    elif args.prompt_type == 'coop':
+        trainable_param = model.prompt_learner.parameters()
+        # optimizer = torch.optim.AdamW(trainable_param, args.lr)
+        optimizer = _build_optimizer(args, trainable_param)
+        optim_state = deepcopy(optimizer.state_dict())
+        
+    elif args.prompt_type == 'cocoop': # set dynamiclly during adaptation
+        # TODO, set a function for cocoop to set optimizer during adaptation
+        optimizer = None
+        optim_state = None      
+        
+    elif args.prompt_type == 'vp':
+        trainable_param = model.get_trainable_parameters()
+        optimizer = _build_optimizer(args, trainable_param)
+        optim_state = deepcopy(optimizer.state_dict())
+        
+    elif args.prompt_type == 'maple':
+        trainable_param = filter(lambda p: p.requires_grad, model.parameters())
+        optimizer = _build_optimizer(args, trainable_param)
+        optim_state = optimizer.state_dict()
     
     return optimizer, optim_state

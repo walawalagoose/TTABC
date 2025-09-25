@@ -56,7 +56,7 @@ def main(args):
     set_random_seed(args.seed)
     print("Use GPU: {} for training".format(args.gpu))
     # print the run_type and prompt_type
-    print(f"Run type: {args.run_type}, Prompt type: {args.prompt_type}")
+    print(f"TTA Method: {args.run_type}, Prompting type: {args.prompt_type}")
     
     tpt_methods = get_method(args.run_type)(args)
 
@@ -114,10 +114,10 @@ if __name__ == '__main__':
     parser.add_argument('--corruption_level', default=5, type=int, help='corruption level for imagenetc, cifar10c, cifar100c')
     # model
     parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
-    parser.add_argument('--prompt_type' , type=str, default='T', choices=['N', 'T', 'V'], help='type of prompt, N: no prompt, T: text prompt, V: visual prompt')
+    parser.add_argument('--prompt_type' , type=str, default='coop', choices=['zs', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support zs/coop/cocoop/vp/maple')
     parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
-    parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization")
+    # parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization") # having been removed
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50')
     parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
     parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')

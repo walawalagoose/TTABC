@@ -135,7 +135,7 @@ def load(name: str, device: Union[str, torch.device] = "cuda" if torch.cuda.is_a
 
     embed_dim = model.state_dict()["text_projection"].shape[1]
     if not jit:
-        if 'maple' in mode:
+        if mode == 'maple':
             from .model_maple import build_model_maple
             design_details = {
             'trainer': 'MaPLe',
