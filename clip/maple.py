@@ -249,7 +249,7 @@ class MaPLe(nn.Module):
         self.model.load_state_dict(state_dict, strict=False)
         
         
-def get_maple(clip_arch, test_set, device, n_ctx, ctx_init=None, prompt_depth=9):
+def get_maple(clip_arch, test_set, device, n_ctx, ctx_init=None, prompt_depth=9, design_details=None):
     if test_set in fewshot_datasets:
         classnames = eval(f"{test_set.lower()}_classes")
     elif test_set == 'bongard':
@@ -257,7 +257,7 @@ def get_maple(clip_arch, test_set, device, n_ctx, ctx_init=None, prompt_depth=9)
     else:
         classnames = imagenet_classes
         
-    clip_model, _, _ = clip.load(clip_arch, device=device, download_root=DOWNLOAD_ROOT, mode='maple')
+    clip_model, _, _ = clip.load(clip_arch, device=device, download_root=DOWNLOAD_ROOT, mode='maple', design_details=design_details)
     
     model = MaPLe(classnames, clip_model, n_ctx=n_ctx, ctx_init=ctx_init, prompt_depth=prompt_depth, device=device)
 

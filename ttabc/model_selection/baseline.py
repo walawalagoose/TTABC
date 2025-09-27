@@ -18,6 +18,10 @@ from ttabc.model_selection.base_method import BaseMethod
 import ipdb
 
 class BASELINE(BaseMethod):
+    """
+        Using exisiting pre-trained model directly for evaluation without any test-time adaptation.
+        Different from zero-shot, the model here could be trained with few-shot training (e.g., CoOp, CoCoOp, MaPLe).
+    """
     def __init__(self, args):
         super().__init__(args)
         self.args = args
@@ -94,7 +98,9 @@ class BASELINE(BaseMethod):
             
             with torch.no_grad():
                 with torch.amp.autocast(device_type='cuda'):
-                    if self.args.prompt_type == 'cocoop':
+                    if self.args.prompt_type == 'maple':
+                        output = self.model(image)['logits']
+                    elif self.args.prompt_type == 'cocoop':
                         output = self.model((image_feature, pgen_ctx))
                     else:
                         output = self.model(image)

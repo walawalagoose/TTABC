@@ -33,7 +33,9 @@ class OTPT(BaseMethod):
         selected_idx = None
         for j in range(self.args.tta_steps):
             with torch.amp.autocast(device_type='cuda'):
-                if self.args.prompt_type == 'cocoop':
+                if self.args.prompt_type == 'maple':
+                    output = self.model(inputs)['logits']
+                elif self.args.prompt_type == 'cocoop':
                     output = self.model((image_feature, pgen_ctx))
                 else:
                     output = self.model(inputs) 
@@ -197,6 +199,8 @@ class OTPT(BaseMethod):
             
             with torch.no_grad():
                 with torch.amp.autocast(device_type='cuda'):
+                    if self.args.prompt_type == 'maple':
+                        output = self.model(image)['logits']
                     if self.args.prompt_type == 'cocoop':
                         output = self.model((image_feature, pgen_ctx))
                     else:

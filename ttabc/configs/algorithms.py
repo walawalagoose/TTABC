@@ -8,13 +8,13 @@ import math
 algorithm_defaults = {
     "zero_shot": {
         "tpt": False,
-        "prompt_type": 'zs',
+        "prompt_type": 'no_prompt',
         "load": None,
     },
     "baseline": {
         "tpt": False,
         # "prompt_type": 'coop', # actually it can be epuipped with any prompt type
-        "supported_list": ['zs', 'coop', 'cocoop', 'vp', 'maple'],
+        "supported_list": ['coop', 'cocoop', 'vp', 'maple'],
         # "load": None,
     },
     "tpt": {

@@ -48,7 +48,7 @@ def create_model(args):
     else:
         classnames = imagenet_classes
         
-    if args.prompt_type in ['zs', None]:
+    if args.prompt_type in ['no_prompt', None]:
         model = get_zero_shot(args.arch, args.test_sets, args.gpu)
         model_state = deepcopy(model.state_dict())
         
@@ -78,7 +78,7 @@ def create_model(args):
                 param.requires_grad_(False)
         
     elif args.prompt_type == 'vp': # visual prompt
-        assert args.load is None and args.prompt_type in ['zs', None], "Not implemented: visual prompt with coop/cocoop" # TODO, future work: vp with coop/cocoop
+        assert args.load is None and args.prompt_type in ['no_prompt', None], "Not implemented: visual prompt with coop/cocoop" # TODO, future work: vp with coop/cocoop
         assert args.vp_type in ['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], "Visual prompt type not supported"
         model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
         model_state = deepcopy(model.state_dict())
@@ -89,11 +89,25 @@ def create_model(args):
         # TODO: customize when vp works with coop/cocoop
         
     elif args.prompt_type == 'maple':
+        # TODO: put this design_details setting in algorithm.py
+        design_details = {
+            'trainer': 'MaPLe',
+            'vision_depth': getattr(args, 'vision_depth', 0),
+            'language_depth': getattr(args, 'language_depth', 0), 
+            'vision_ctx': getattr(args, 'vision_ctx', 0),
+            'language_ctx': getattr(args, 'language_ctx', 0),
+            'maple_length': getattr(args, 'maple_length', 4),  # MaPLe提示长度
+            'prompt_depth': getattr(args, 'prompt_depth', 9), # MaPLe提示深度
+            }
+        if args.ctx_init is not None:
+            assert len(args.ctx_init.split('_')) == design_details['maple_length'], "n_ctx should be equal to maple_length"
+        else:
+            assert args.n_ctx == design_details['maple_length'], "n_ctx should be equal to maple_length"
         model = get_maple(
-            args.arch, args.test_sets, device='cuda' if torch.cuda.is_available() else 'cpu',
-            n_ctx=getattr(args, 'n_ctx', 2),
-            ctx_init=getattr(args, 'ctx_init', "a photo of a"),
-            prompt_depth=getattr(args, 'prompt_depth', 9)
+            args.arch, args.test_sets, args.gpu,
+            n_ctx=args.n_ctx,ctx_init=args.ctx_init,
+            prompt_depth=design_details['prompt_depth'],
+            design_details=design_details
         )
         model_state = model.state_dict()
        
@@ -108,7 +122,6 @@ def create_model(args):
         model = model.cuda(args.gpu)
     return model, model_state
 
-# TODO：为方法设置optimizer（algorithm里）
 def set_optimizer(args, model):
     
     def _build_optimizer(args, params):
@@ -125,7 +138,7 @@ def set_optimizer(args, model):
             betas = getattr(args, "betas", (0.9, 0.999))
             return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
         
-    if args.tpt is False or args.prompt_type in ['zs', None]:
+    if args.tpt is False or args.prompt_type in ['no_prompt', None]:
         optimizer = None
         optim_state = None
         

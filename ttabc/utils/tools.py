@@ -192,7 +192,7 @@ def avg_entropy(outputs):
     return -(avg_logits * torch.exp(avg_logits)).sum(dim=-1)
 
 def reset_classnames(args, tpt_methods, class_names):
-    if args.prompt_type in ['zs', None]:
+    if args.prompt_type in ['no_prompt', None]:
         tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'coop':
         tpt_methods.model.reset_classnames(class_names, args.arch)

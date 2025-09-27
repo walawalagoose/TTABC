@@ -74,7 +74,7 @@ def main(args):
             os.makedirs(log_path, exist_ok=True)
             
             # Create a file to store args and printed parameters
-            file_name = f"{args.run_type}_{set_id}_{args.arch}.txt"
+            file_name = f"{args.run_type}_{set_id}_{args.arch.replace('/', '-')}.txt"
             file_path = os.path.join(log_path, file_name)
 
             with open(file_path, 'a') as f:
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--corruption_level', default=5, type=int, help='corruption level for imagenetc, cifar10c, cifar100c')
     # model
     parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
-    parser.add_argument('--prompt_type' , type=str, default='coop', choices=['zs', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support zs/coop/cocoop/vp/maple')
+    parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple')
     parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     # parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization") # having been removed
