@@ -13,8 +13,8 @@ from PIL import Image
 class BaseJsonDataset(Dataset):
     def __init__(self, image_path, json_path, mode='train', n_shot=None, transform=None):
         self.transform = transform
-        self.image_path = image_path
-        self.split_json = json_path
+        self.image_path = os.path.expanduser(image_path)
+        self.split_json = os.path.expanduser(json_path)
         self.mode = mode
         self.image_list = []
         self.label_list = []
@@ -64,6 +64,7 @@ path_dict = {
 }
 
 def build_fewshot_dataset(set_id, root, transform, mode='train', n_shot=None):
+    root = os.path.expanduser(root)
     if set_id.lower() == 'aircraft':
         return Aircraft(root, mode, n_shot, transform)
     path_suffix, json_path = path_dict[set_id.lower()]
@@ -75,7 +76,7 @@ class Aircraft(Dataset):
     """ FGVC Aircraft dataset """
     def __init__(self, root, mode='train', n_shot=None, transform=None):
         self.transform = transform
-        self.path = root
+        self.path = os.path.expanduser(root)
         self.mode = mode
 
         self.cname = []
