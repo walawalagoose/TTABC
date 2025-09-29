@@ -379,13 +379,14 @@ class ClipZeroShot(nn.Module):
             return self.forward(image)
     
     def forward(self, image):
+        # modified, return logits and image features
         image_features = self.image_encoder(image.type(self.dtype))
         text_features = self.get_text_features()
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         
         logit_scale = self.logit_scale.exp()
         logits = logit_scale * image_features @ text_features.t()
-        return logits
+        return logits, image_features
 
 
 def get_zero_shot(clip_arch, test_set, device):

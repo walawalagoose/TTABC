@@ -9,6 +9,7 @@ from enum import Enum
 
 import torch
 import torchvision.transforms as transforms
+import torch.nn.functional as F
 
 
 def set_random_seed(seed):
@@ -184,12 +185,39 @@ def select_confident_samples(logits, top):
     idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * top)]
     return logits[idx], idx
 
-def avg_entropy(outputs):
+"""
+    Common loss functions for test-time adaptation
+"""
+def marginal_entropy(outputs):
     logits = outputs - outputs.logsumexp(dim=-1, keepdim=True) # logits = outputs.log_softmax(dim=1) [N, 1000]
     avg_logits = logits.logsumexp(dim=0) - np.log(logits.shape[0]) # avg_logits = logits.mean(0) [1, 1000]
     min_real = torch.finfo(avg_logits.dtype).min
     avg_logits = torch.clamp(avg_logits, min=min_real)
     return -(avg_logits * torch.exp(avg_logits)).sum(dim=-1)
+
+def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
+    """Entropy of softmax distribution from logits."""
+    return -(x.softmax(1) * x.log_softmax(1)).sum(1)
+
+
+
+def resize_with_CLIP(x, resolution):
+    """ 
+        Resize image to the resolution used in CLIP model.
+        x: (B,C,H,W) or (C,H,W) -> return: (B,C,resolution,resolution) or (C,resolution,resolution) 
+    """
+    if x.shape[2] == resolution:
+            return x # no need to resize
+    elif len(x.shape) == 3:
+        x = x.unsqueeze(0)
+        x = F.interpolate(x, size=(resolution, resolution), 
+                        mode='bilinear', align_corners=False)
+        return x.squeeze(0)
+    elif len(x.shape) == 4:
+        return F.interpolate(x, size=(resolution, resolution), 
+                        mode='bilinear', align_corners=False)
+    else:
+        raise ValueError(f"Unsupported input shape: {x.shape}. Expected (B,C,H,W) or (C,H,W)")
 
 def reset_classnames(args, tpt_methods, class_names):
     if args.prompt_type in ['no_prompt', None]:

@@ -47,19 +47,19 @@ class BaseJsonDataset(Dataset):
         
         return image, torch.tensor(label).long()
 
-fewshot_datasets = ['DTD', 'Flower102', 'Food101', 'Cars', 'SUN397', 
-                    'Aircraft', 'Pets', 'Caltech101', 'UCF101', 'eurosat']
+fewshot_datasets = ['DTD', 'Flower102', 'Food101', 'StanfordCars', 'SUN397', 
+                    'Aircraft', 'OxfordPets', 'Caltech101', 'UCF101', 'EuroSAT']
 
 path_dict = {
     # dataset_name: ["image_dir", "json_split_file"]
     "flower102": ["jpg", "data/data_splits/split_zhou_OxfordFlowers.json"],
     "food101": ["images", "data/data_splits/split_zhou_Food101.json"],
     "dtd": ["images", "data/data_splits/split_zhou_DescribableTextures.json"],
-    "pets": ["", "data/data_splits/split_zhou_OxfordPets.json"],
+    "oxfordpets": ["", "data/data_splits/split_zhou_OxfordPets.json"],
     "sun397": ["", "data/data_splits/split_zhou_SUN397.json"],
     "caltech101": ["", "data/data_splits/split_zhou_Caltech101.json"],
     "ucf101": ["", "data/data_splits/split_zhou_UCF101.json"],
-    "cars": ["", "data/data_splits/split_zhou_StanfordCars.json"],
+    "stanfordcars": ["", "data/data_splits/split_zhou_StanfordCars.json"],
     "eurosat": ["", "data/data_splits/split_zhou_EuroSAT.json"]
 }
 

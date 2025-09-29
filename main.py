@@ -27,9 +27,9 @@ from clip.custom_clip import get_coop
 from clip.cocoop import get_cocoop
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, select_confident_samples, avg_entropy, reset_classnames
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, select_confident_samples, marginal_entropy, reset_classnames
 from ttabc.utils.metrics_tools import ece_calculator, ECE_Loss, accuracy_writer
-from ttabc.utils.model import create_model, set_optimizer
+from ttabc.utils.load_model import create_model, set_optimizer
 from ttabc.utils.load_data import create_dataloader
 from ttabc.model_selection import get_method
 from ttabc.utils.configs_tool import config_hparams
@@ -58,7 +58,7 @@ def main(args):
     # print the run_type and prompt_type
     print(f"TTA Method: {args.run_type}, Prompting type: {args.prompt_type}")
     
-    tpt_methods = get_method(args.run_type)(args)
+    tta_methods = get_method(args.run_type)(args)
 
     cudnn.benchmark = True
     # iterating through eval datasets
@@ -84,10 +84,10 @@ def main(args):
 
         val_dataset, val_loader, classnames = create_dataloader(args, set_id)
         
-        reset_classnames(args, tpt_methods, classnames)
+        reset_classnames(args, tta_methods, classnames)
 
         results_for_ece[set_id] = {'max_confidence': [], 'prediction': [], 'label': []}
-        results[set_id] = tpt_methods.test_time_adapt_eval(val_loader, results_for_ece[set_id])
+        results[set_id] = tta_methods.test_time_adapt_eval(val_loader, results_for_ece[set_id])
         _, ece_res[set_id] = ece_calculator(results_for_ece[set_id])
         del val_dataset, val_loader
         try:

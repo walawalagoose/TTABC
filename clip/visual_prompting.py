@@ -167,11 +167,9 @@ class VPCLIP(nn.Module):
         self.backbone_type = backbone_type
     
     def forward(self, images):
-        if self.visual_prompter is not None:
-            prompted_images = self.visual_prompter(images)
-        else:
-            prompted_images = images
-        return self.backbone(prompted_images)
+        prompted_images = self.visual_prompter(images)
+        logits, _ = self.backbone(prompted_images)
+        return logits
     
     def reset_backbone(self):
         if self.backbone_type != 'zs' and hasattr(self.backbone, 'reset'):

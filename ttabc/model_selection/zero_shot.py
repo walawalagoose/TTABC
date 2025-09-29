@@ -72,7 +72,7 @@ class ZEROSHOT(BaseMethod):
                 
                 # Direct inference without any adaptation
                 with torch.amp.autocast(device_type='cuda'):
-                    output = self.model(image)
+                    output, _ = self.model(image)
                 
                 # Calculate softmax for confidence
                 softmax_output = softmax(output)

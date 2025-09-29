@@ -12,7 +12,7 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples, avg_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples, marginal_entropy
 from ttabc.model_selection.base_method import BaseMethod
 
 class TPT(BaseMethod):
@@ -42,7 +42,7 @@ class TPT(BaseMethod):
                 else:
                     output, selected_idx = select_confident_samples(output, self.args.selection_p)
 
-                loss = avg_entropy(output)
+                loss = marginal_entropy(output)
             self.optimizer.zero_grad()
             # compute gradient and do SGD step
             self.scaler.scale(loss).backward()
