@@ -110,6 +110,7 @@ algorithm_defaults = {
     },
     
     "boostadapter": {
+        # tpt=true, bs=aug_size or tpt=false, bs=1
         "tpt": True,
         "batch_size": 64,
         

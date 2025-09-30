@@ -3,6 +3,7 @@ import operator
 import torch
 import torch.nn.functional as F
 from PIL import Image
+import copy
 
 try:
     from torchvision.transforms import InterpolationMode
@@ -19,9 +20,19 @@ def get_entropy_tda(loss, n_classes):
         loss = loss.item()
     return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
 
-class TDA(BaseMethod):
+def select_confident_samples(feat, logits, topTPT):
+    batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
+    idxTPT = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * topTPT)]
+    # return feat[idxTPT], logits[idxTPT]
+    return feat[idxTPT], logits[idxTPT], idxTPT
+
+def get_output_entropy(outputs):
+    logits = outputs - outputs.logsumexp(dim=-1, keepdim=True)
+    return -(logits * torch.exp(logits)).sum(dim=-1)
+
+class BoostAdapter(BaseMethod):
     """
-    Port of training-free TDA (cache-based) into current framework.
+    Port of training-free BoostAdapter (cache-based) into current framework.
     No parameter update; only builds positive/negative feature caches.
     """
 
@@ -56,19 +67,20 @@ class TDA(BaseMethod):
         self.neg_cache = {}
 
     def test_time_tuning(self, inputs):
-        # TDA does not perform any test-time tuning
+        # BoostAdapter does not perform any test-time tuning
         pass
 
-    def _update_cache(self, cache, pred, features_loss, shot_capacity, include_prob_map=False):
-        """Update cache with new features and loss, maintaining the maximum shot capacity."""
+    def _update_cache(self, cache, pred, features_loss, shot_capacity, include_prob_map=False, fifo=True):
         with torch.no_grad():
             item = features_loss if not include_prob_map else features_loss[:2] + [features_loss[2]]
             if pred in cache:
-                if len(cache[pred]) < shot_capacity:
-                    cache[pred].append(item)
-                elif features_loss[1] < cache[pred][-1][1]:
-                    cache[pred][-1] = item
-                cache[pred] = sorted(cache[pred], key=operator.itemgetter(1))
+                cache[pred].append(item)
+                if fifo: 
+                    if len(cache[pred]) > shot_capacity:
+                        cache[pred] = cache[pred][1:]
+                else:
+                    cache[pred] = sorted(cache[pred], key=operator.itemgetter(1))
+                    cache[pred] = cache[pred][:shot_capacity]   
             else:
                 cache[pred] = [item]
 
@@ -84,6 +96,8 @@ class TDA(BaseMethod):
                         cache_values.append(item[2])
                     else:
                         cache_values.append(class_index)
+            if len(cache_keys) == 0:
+                return torch.zeros(1)[0]
 
             cache_keys = torch.cat(cache_keys, dim=0).permute(1, 0)
             if neg_mask_thresholds:
@@ -94,7 +108,39 @@ class TDA(BaseMethod):
 
             affinity = image_features @ cache_keys
             cache_logits = ((-1) * (beta - beta * affinity)).exp() @ cache_values
+            # return alpha * cache_logits, affinity
             return alpha * cache_logits
+        
+    def _get_clip_logits(self, image_features, clip_logits, infer_ori_image=False):
+        ori_feat = image_features.detach().clone()
+        ori_output = clip_logits.detach().clone()
+
+        with torch.no_grad():
+            if image_features.size(0) > 1:
+                if infer_ori_image:
+                    prob_map = clip_logits[:1].softmax(1)
+                    pred = int(clip_logits[:1].topk(1, 1, True, True)[1].t()[0])
+                    
+                    loss = softmax_entropy(clip_logits[:1])
+                    return image_features[:1], clip_logits[:1], loss, prob_map, pred, ori_feat, ori_output
+                else:
+                    batch_entropy = softmax_entropy(clip_logits)
+                    selected_idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * 0.1)]
+                    output = clip_logits[selected_idx]
+                    image_features = image_features[selected_idx].mean(0).unsqueeze(0)
+                    clip_logits = output.mean(0).unsqueeze(0)
+
+                    prob_map = output.softmax(1).mean(0).unsqueeze(0)
+                    pred = int(output.mean(0).unsqueeze(0).topk(1, 1, True, True)[1].t())
+                    
+                    loss = marginal_entropy(output)
+            else:
+                prob_map = clip_logits.softmax(1)
+                pred = int(clip_logits.topk(1, 1, True, True)[1].t()[0])
+                
+                loss = softmax_entropy(clip_logits)
+
+        return image_features, clip_logits, loss, prob_map, pred, ori_feat, ori_output
 
     def test_time_adapt_eval(self, val_loader, result_dict=None):
         batch_time = AverageMeter('Time', ':6.3f', Summary.NONE)
@@ -129,24 +175,7 @@ class TDA(BaseMethod):
                 with torch.amp.autocast(device_type='cuda'):
                     clip_logits, image_features = self.model(image)
 
-            if image_features.size(0) > 1:
-                with torch.no_grad():
-                    batch_entropy = softmax_entropy(clip_logits)
-                    selected_idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * self.args.selection_p)]
-                    output = clip_logits[selected_idx]
-                    image_features = image_features[selected_idx].mean(0).unsqueeze(0)
-                    clip_logits = output.mean(0).unsqueeze(0)
-
-                    prob_map = output.softmax(1).mean(0).unsqueeze(0)
-                    pred = int(output.mean(0).unsqueeze(0).topk(1, 1, True, True)[1].t())
-                    
-                    loss = marginal_entropy(output)
-            else:
-                with torch.no_grad():
-                    prob_map = clip_logits.softmax(1)
-                    pred = int(clip_logits.topk(1, 1, True, True)[1].t()[0]) 
-                    
-                    loss = softmax_entropy(clip_logits)
+            image_features, clip_logits, loss, prob_map, pred, ori_feat, ori_output = self._get_clip_logits(image_features, clip_logits, self.args.infer_ori_image)
 
             prop_entropy = get_entropy_tda(loss, len(self.model.classnames)) # class-normalized entropy
 
@@ -155,7 +184,20 @@ class TDA(BaseMethod):
                 self._update_cache(
                     self.pos_cache,
                     pred, [image_features, loss],
-                    self.pos_config['shot_capacity'])
+                    self.pos_config['shot_capacity'],
+                    fifo=False)
+                
+                select_feat, select_output, select_idx = select_confident_samples(ori_feat, ori_output, self.args.selection_p)
+                select_entropy = get_output_entropy(select_output)
+                
+                cur_pos_cache = copy.deepcopy(self.pos_cache)
+                for i in range(select_entropy.shape[0]):
+                        cur_pred = int(select_output[i].argmax(dim=-1).item())
+                        cur_feat = select_feat[i]
+                        self._update_cache(
+                            cur_pos_cache, cur_pred,
+                            [cur_feat.unsqueeze(0), select_entropy[i].item()],
+                            self.pos_config['shot_capacity'] + self.args.delta, fifo=False)
 
             # update negative cache
             if self.neg_config['enabled'] and self.neg_config['entropy_threshold']['lower'] < prop_entropy < self.neg_config['entropy_threshold']['upper']:
