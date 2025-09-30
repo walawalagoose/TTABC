@@ -41,7 +41,7 @@ class BaseMethod:
     def __init__(self, args):
         self.args = args
         self.temperature_value = {'ViT': 1.16, 'RN': 1.15} #for temperature scaling experiments 
-        # create model (zero-shot clip model (ViT-L/14@px336) with promptruning)
+        # create model (zero-shot clip model (ViT-L/14@px336) with prompt tuning)
         self.model, self.model_state = create_model(args)
         # define optimizer
         self.optimizer, self.optim_state = set_optimizer(args, self.model)

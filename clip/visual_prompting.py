@@ -156,23 +156,26 @@ class VisualPrompter(nn.Module):
         else:
             # reset to zero or random initialization, TODO
             for param in self.prompter.parameters():
-                param.data.fill_(0)
-                # nn.init.normal_(param, 0, 0.02)
+                # param.data.fill_(0)
+                nn.init.normal_(param, 0, 0.02)
     
 class VPCLIP(nn.Module):
-    def __init__(self, backbone, visual_prompter, backbone_type='zs'):
+    def __init__(self, backbone, visual_prompter, vp_mode='zs'):
         super(VPCLIP, self).__init__()
         self.backbone = backbone
         self.visual_prompter = visual_prompter
-        self.backbone_type = backbone_type
+        self.vp_mode = vp_mode
     
     def forward(self, images):
         prompted_images = self.visual_prompter(images)
-        logits, _ = self.backbone(prompted_images)
+        if self.vp_mode == 'zs':
+            logits, _ = self.backbone(prompted_images)
+        else:
+            logits = self.backbone(prompted_images)
         return logits
     
     def reset_backbone(self):
-        if self.backbone_type != 'zs' and hasattr(self.backbone, 'reset'):
+        if self.vp_mode != 'zs':
             with torch.no_grad():
                 self.backbone.reset()
             
@@ -180,7 +183,7 @@ class VPCLIP(nn.Module):
         self.visual_prompter.reset()
         
     def reset(self):
-        # self.reset_backbone()
+        self.reset_backbone()
         self.reset_vp()
     
     def reset_classnames(self, classnames, arch):
@@ -208,22 +211,22 @@ class VPCLIP(nn.Module):
             return list(self.visual_prompter.get_trainable_parameters())
         return []
     
-    # Not implemented yet, TODO
-    # def get_text_parameters(self):
-    #     if self.backbone_type == 'coop':
-    #         return list(self.backbone.prompt_learner.parameters())
-    #     # elif self.backbone_type == 'cocoop':
-    #     #     return list(self.backbone.prompt_generator.parameters())
-    #     else:
-    #         return []
+    # TODO, vp+cocoop
+    def get_text_parameters(self):
+        if self.vp_mode == 'coop':
+            return list(self.backbone.prompt_learner.parameters())
+        # elif self.backbone_type == 'cocoop':
+        #     return list(self.backbone.prompt_generator.parameters())
+        else:
+            return []
     
     def get_trainable_parameters(self):
         params = []
         params.extend(self.get_vp_parameters())
-        # params.extend(self.get_text_parameters())
+        params.extend(self.get_text_parameters())
         return params
     
-def get_visual_prompt_clip(clip_arch, test_set, device, vp_type, backbone_type='zs', vp_args=None, coop_args=None):
+def get_visual_prompt_clip(clip_arch, test_set, device, vp_type, vp_mode='zs', vp_args=None, coop_args=None):
     # Handle None arguments by setting default empty dict
     if vp_args is None:
         vp_args = {}
@@ -233,29 +236,30 @@ def get_visual_prompt_clip(clip_arch, test_set, device, vp_type, backbone_type='
     # Set hyperparameters for vp
     prompt_size = vp_args.get('prompt_size', 30)
     image_size = vp_args.get('image_size', 224)
-    rank = vp_args.get('rank', 16)
+    rank = vp_args.get('rank', 8)
     
-    # Set hyperparameters for coop/cocoop, TODO
-    n_ctx = coop_args.get('n_ctx', 16)
+    # Set hyperparameters for coop
+    n_ctx = coop_args.get('n_ctx', 4)
     ctx_init = coop_args.get('ctx_init', None)
     learned_cls = coop_args.get('learned_cls', False)
+    # TODO: vp+cocoop
     
     # Initialize vp
     visual_prompter = VisualPrompter(vp_type, prompt_size=prompt_size, image_size=image_size, rank=rank, device=device)
         
     # get backbone model
-    if backbone_type == 'zs':
+    if vp_mode == 'zs':
         backbone = get_zero_shot(clip_arch, test_set, device)
-    # # Not implemented yet, TODO
-    # elif backbone_type == 'coop':
-    #     backbone = get_coop(
-    #         clip_arch,test_set,device,
-    #         n_ctx=n_ctx, ctx_init=ctx_init,
-    #         learned_cls=learned_cls
-    #     )
-    # elif backbone_type == 'cocoop':
+    elif vp_mode == 'coop':
+        backbone = get_coop(
+            clip_arch,test_set,device,
+            n_ctx=n_ctx, ctx_init=ctx_init,
+            learned_cls=learned_cls
+        )
+    # Not implemented yet: vp+cocoop, TODO
+    # elif vp_mode == 'cocoop':
     #     backbone = get_cocoop(clip_arch, test_set, device, n_ctx=n_ctx)
     else:
-        raise ValueError(f"Unsupported backbone type: {backbone_type}, supported: ['zs', 'coop', 'cocoop']")
+        raise ValueError(f"Unsupported backbone type: {vp_mode}, supported: ['zs', 'coop']")
 
-    return VPCLIP(backbone, visual_prompter, backbone_type)
+    return VPCLIP(backbone, visual_prompter, vp_mode)

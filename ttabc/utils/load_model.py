@@ -61,9 +61,9 @@ def create_model(args):
             with torch.no_grad():
                 #model.prompt_learner[0].ctx.copy_(pretrained_ctx)
                 #model.prompt_learner[0].ctx_init_state = pretrained_ctx
-                model.prompt_learner.ctx.copy_(pretrained_ctx)
-                model.prompt_learner.ctx_init_state = pretrained_ctx
-        model_state = None
+                model.backbone.prompt_learner.ctx.copy_(pretrained_ctx)
+                model.backbone.prompt_learner.ctx_init_state = pretrained_ctx
+        model_state = None # beacuse coop already has ctx_init_state
         for name, param in model.named_parameters():
             if "prompt_learner" not in name:
                 param.requires_grad_(False)
@@ -78,15 +78,29 @@ def create_model(args):
                 param.requires_grad_(False)
         
     elif args.prompt_type == 'vp': # visual prompt
-        assert args.load is None and args.prompt_type in ['no_prompt', None], "Not implemented: visual prompt with coop/cocoop" # TODO, future work: vp with coop/cocoop
+        assert args.vp_mode in ['zs', None, 'coop'], "Not implemented: visual prompt with cocoop" # TODO, future work: vp with cocoop
         assert args.vp_type in ['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], "Visual prompt type not supported"
-        model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type)
+        vp_args = {'prompt_size': 30, 'image_size': args.resolution, 'rank': 4}
+        coop_args = {'n_ctx': args.n_ctx, 'ctx_init': args.ctx_init, 'learned_cls': False}
+        model = get_visual_prompt_clip(args.arch, args.test_sets, args.gpu, args.vp_type, args.vp_mode, vp_args=vp_args, coop_args=coop_args)
         model_state = deepcopy(model.state_dict())
         # require_grad_(False) for all except visual prompter
         for name, param in model.named_parameters():
             if "visual_prompter" not in name:
                 param.requires_grad_(False)
-        # TODO: customize when vp works with coop/cocoop
+        # when vp works with coop
+        if args.vp_mode == 'coop':
+            for p in model.backbone.prompt_learner.parameters():
+                p.requires_grad_(True)
+            if args.load is not None:
+                print("Use pre-trained soft prompt (CoOp) as initialization")
+                pretrained_ctx = torch.load(args.load)['state_dict']['ctx']
+                assert pretrained_ctx.size()[0] == args.n_ctx
+                with torch.no_grad():
+                    model.prompt_learner.ctx_init_state = pretrained_ctx
+        # TODO: customize when vp works with cocoop
+        elif args.vp_mode == 'cocoop':
+            pass
         
     elif args.prompt_type == 'maple':
         # TODO: put this design_details setting in algorithm.py

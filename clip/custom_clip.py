@@ -308,9 +308,9 @@ class ClipTestTimeTuning(nn.Module):
 
         return torch.mean(text_features, dim=0)
 
-    def inference(self, image):
-        with torch.no_grad():
-            image_features = self.image_encoder(image.type(self.dtype))
+    def real_forward(self, image):
+        # with torch.no_grad():
+        image_features = self.image_encoder(image.type(self.dtype))
 
         text_features = self.get_text_features()
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
@@ -327,7 +327,12 @@ class ClipTestTimeTuning(nn.Module):
         elif len(input.size()) == 2:
             return self.directional_prompt_tuning(input)
         else:
-            return self.inference(input)
+            return self.real_forward(input)
+        
+    def inference(self, input):
+        # sharing the same interface as forward()
+        with torch.no_grad():
+            return self.forward(input)
 
 
 class ClipZeroShot(nn.Module):

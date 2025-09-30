@@ -108,20 +108,17 @@ if __name__ == '__main__':
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='N')
+    parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
     parser.add_argument('--down_sample_ratio' , type=float, default=None, help='down sample ratio for dataset')
     parser.add_argument('--I_augmix', action='store_true', default=False, help='augmix for I')
+    # specified for corrupted datasets (imagenetc, cifar10c, cifar100c, etc)
     parser.add_argument('--corruption_type', default='frost', type=str, help='corruption type for imagenetc, cifar10c, cifar100c')
     parser.add_argument('--corruption_level', default=5, type=int, help='corruption level for imagenetc, cifar10c, cifar100c')
+    
     # model
-    parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
+    parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
+    # TTA method and prompting
     parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple')
-    parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
-    parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
-    # parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization") # having been removed
-    parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50')
-    parser.add_argument('--resolution', default=224, type=int, help='CLIP image resolution')
-    parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')
-    parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
     parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 
                                                                          'baseline', 
                                                                          'tpt', 
@@ -129,6 +126,15 @@ if __name__ == '__main__':
                                                                          'tpt_ts', 
                                                                          'otpt', 
                                                                          'ntpt'], help='which method to use')
+    parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
+    parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
+    # prompting config
+    parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
+    parser.add_argument('--vp_mode' , type=str, default='zs', choices=['zs', 'coop', 'cocoop'], help='multimodal prompt for visual prompt')
+    # parser.add_argument('--cocoop', action='store_true', default=False, help="use cocoop's output as prompt initialization") # having been removed
+    parser.add_argument('--n_ctx', default=4, type=int, help='number of tunable tokens')
+    parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
+    
     # parameters and device
     parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')

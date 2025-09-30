@@ -230,7 +230,7 @@ def reset_classnames(args, tpt_methods, class_names):
             model_state = tpt_methods.model.state_dict()
             tpt_methods.model = tpt_methods.model.cuda(args.gpu)   
     elif args.prompt_type == 'vp':
-        # TODO: differtent visual prompt backbone (vp+coop/cocoop)
+        # TODO: differtent visual prompt backbone (vp+cocoop)
         tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'maple':
         # MaPLe's reset_classnames() only needs classnames
