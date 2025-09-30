@@ -21,8 +21,9 @@ algorithm_defaults = {
         "tpt": True,
         "prompt_type": 'coop', # can also be cocoop
         "supported_list": ['coop', 'cocoop', 'vp'],
-        # "vp_type": 'lor_vp',
-        # "load": 'checkpoints/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
+        "vp_type": 'lor_vp',
+        "vp_mode": 'coop', # 'zs' or 'coop', 'cocoop' not supported yet
+        # "load": 'checkpoints/coop/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
         # "load": None,
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
@@ -79,6 +80,62 @@ algorithm_defaults = {
         "n_ctx": 4,  # number of prompt tokens
         "lambda_term": 10.0,  # lambda for n-tpt
         "two_step": False,  # whether to use two-step training
+    },
+    
+    "tda": {
+        # tpt=true, bs=aug_size or tpt=false, bs=1
+        "tpt": True,
+        "batch_size": 64,
+        
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        "load": None,
+        "selection_p": 0.1,  # confidence threshold for online shot.
+        
+        # config for the caches
+        "pos_config": {
+            'enabled': True,
+            'shot_capacity': 3,
+            'alpha': 2.0,
+            'beta': 5.0
+        },
+        "neg_config": {
+            'enabled': True,
+            'shot_capacity': 2,
+            'alpha': 0.117,
+            'beta': 1.0,
+            'entropy_threshold': {'lower': 0.2, 'upper': 0.5},
+            'mask_threshold': {'lower': 0.03, 'upper': 1.0}
+        }
+    },
+    
+    "boostadapter": {
+        "tpt": True,
+        "batch_size": 64,
+        
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        "load": None,
+        "selection_p": 0.1,  # confidence threshold for online shot.
+        
+        "infer_ori_image": True,
+        "delta": 0,
+        
+        # config for the caches
+        "pos_config": {
+            'enabled': True,
+            'shot_capacity': 3,
+            'alpha': 2.0,
+            'beta': 5.0
+        },  
+        "neg_config": {
+            'enabled': True,
+            'shot_capacity': 2,
+            'alpha': 0.117,
+            'beta': 1.0,
+            'entropy_threshold': {'lower': 0.2, 'upper': 0.5},
+            'mask_threshold': {'lower': 0.03, 'upper': 1.0}
+        }
     },
 
 }

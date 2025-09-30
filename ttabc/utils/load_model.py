@@ -152,7 +152,7 @@ def set_optimizer(args, model):
             betas = getattr(args, "betas", (0.9, 0.999))
             return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
         
-    if args.tpt is False or args.prompt_type in ['no_prompt', None]:
+    if args.prompt_type in ['no_prompt', None]:
         optimizer = None
         optim_state = None
         
