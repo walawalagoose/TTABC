@@ -3,7 +3,7 @@
 data_root='/path/to/your/data/root'
 testsets=$1
 arch=RN50 # ViT-B/16
-run_type=tpt # tpt ctpt otpt ntpt
+run_type=tpt # tpt ctpt otpt
 down_sample_ratio=0.001
 log_dir='./logs/'
 gpu=1

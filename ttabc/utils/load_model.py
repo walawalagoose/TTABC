@@ -110,8 +110,8 @@ def create_model(args):
             'language_depth': getattr(args, 'language_depth', 0), 
             'vision_ctx': getattr(args, 'vision_ctx', 0),
             'language_ctx': getattr(args, 'language_ctx', 0),
-            'maple_length': getattr(args, 'maple_length', 4),  # MaPLe提示长度
-            'prompt_depth': getattr(args, 'prompt_depth', 9), # MaPLe提示深度
+            'maple_length': getattr(args, 'maple_length', 4),  # MaPLe prompt length
+            'prompt_depth': getattr(args, 'prompt_depth', 9),  # MaPLe prompt depth
             }
         if args.ctx_init is not None:
             assert len(args.ctx_init.split('_')) == design_details['maple_length'], "n_ctx should be equal to maple_length"

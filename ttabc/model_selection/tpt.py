@@ -1,3 +1,9 @@
+"""
+    Test-Time Prompt Tuning for Zero-Shot Generalization in Vision-Language Models,
+    https://arxiv.org/abs/2209.07511,
+    https://azshue.github.io/TPT/
+"""
+
 import time
 
 from PIL import Image

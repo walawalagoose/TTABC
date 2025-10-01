@@ -1,3 +1,9 @@
+"""
+    Learning Transferable Visual Models From Natural Language Supervision,
+    https://arxiv.org/abs/2103.00020,
+    https://github.com/OpenAI/CLIP
+"""
+
 import time
 import torch
 from PIL import Image

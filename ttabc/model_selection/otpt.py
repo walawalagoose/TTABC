@@ -1,3 +1,10 @@
+"""
+    O-TPT: Orthogonality Constraints for Calibrating Test-time Prompt Tuning in Vision-Language Models,
+    https://arxiv.org/abs/2503.12096,
+    https://github.com/ashshaksharifdeen/O-TPT
+
+"""
+
 import time
 
 from PIL import Image

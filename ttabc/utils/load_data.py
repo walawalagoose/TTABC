@@ -106,18 +106,18 @@ def create_dataloader(args, set_id):
         val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode)
     
     if args.down_sample_ratio is not None:
-        # 获取数据集大小和随机采样索引
+        # Get dataset size and random sampling indices
         total_size = len(val_dataset)
         sample_size = int(args.down_sample_ratio * total_size)
         indices = np.random.choice(total_size, sample_size, replace=False)
         print("number of test samples: {}".format(sample_size))
-        # 创建 SubsetRandomSampler
+        # Create SubsetRandomSampler
         sampler = torch.utils.data.SubsetRandomSampler(indices)
-        # 创建 DataLoader
+        # Create DataLoader
         val_loader = torch.utils.data.DataLoader(
             val_dataset,
             batch_size=batchsize,
-            sampler=sampler,  # 使用自定义采样器
+            sampler=sampler,  # Use custom sampler
             num_workers=args.workers,
             pin_memory=True
         )

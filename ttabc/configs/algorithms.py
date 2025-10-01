@@ -65,22 +65,6 @@ algorithm_defaults = {
         "lambda_term": 2.0,  # lambda for o-tpt
         "two_step": False,  # whether to use two-step training
     },
-    "ntpt": {
-        "tpt": True,
-        "prompt_type": 'coop',
-        "supported_list": ['coop', 'cocoop', 'vp'],
-        # "vp_type": 'lor_vp',
-        "load": None,
-        "optimizer": "SGD",  # Adam for officehome
-        "batch_size": 64,
-        "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
-        "selection_p": 0.1,  # confidence threshold for online shot.
-        "tta_steps": 1,  # number of test-time adaptation steps
-        "lr": 5e-3,  # learning rate
-        "n_ctx": 4,  # number of prompt tokens
-        "lambda_term": 10.0,  # lambda for n-tpt
-        "two_step": False,  # whether to use two-step training
-    },
     
     "tda": {
         # tpt=true, bs=aug_size or tpt=false, bs=1

@@ -1,3 +1,10 @@
+"""
+    BoostAdapter: Improving Vision-Language Test-Time Adaptation via Regional Bootstrapping,
+    https://arxiv.org/abs/2410.15430,
+    https://github.com/taolinzhang/BoostAdapter
+
+"""
+
 import time
 import operator
 import torch

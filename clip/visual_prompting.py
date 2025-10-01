@@ -197,7 +197,7 @@ class VPCLIP(nn.Module):
     # Not implemented yet, TODO
     # def gen_ctx(self, images, aug=False):
     #     if self.backbone_type == 'cocoop':
-    #         # TODO, 后续看一下是否需要在生成上下文时使用vp（按照经验来说一般不需要更好）
+    #         # TODO, check later whether to use vp when generating context (based on experience, it is generally better not to use it)
     #         # if self.visual_prompter is not None:
     #         #     prompted_images = self.visual_prompter(images)
     #         # else:

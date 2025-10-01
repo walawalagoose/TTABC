@@ -1,19 +1,19 @@
-# 忽略所有文件和目录
+# Ignore all files and directories
 *
 
-# 明确跟踪的目录及其内容
+# Explicitly track specific directories and their contents
 !clip/
 !data/
 !ttabc/configs/
 !ttabc/model_selection/
 !ttabc/utils/
 
-# 忽略特定文件和目录
+# Ignore specific files and directories
 __pycache__/
 *.pyc
 *.pyo
 
-# 明确跟踪的单个文件
+# Explicitly track individual files
 !main.py
 !LICENSE
 !README.md

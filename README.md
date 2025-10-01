@@ -1,30 +1,20 @@
 # TTABC: Test-Time Adaptation Benchmark of CLIP
 
-This repository provides the official implementation of our paper [[Paper Link](https://doi.org/10.48550/arXiv.2506.02671)]:
+This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch. It is joint work by Jiazhen Huang, Xiao Chen and Xu Jiang.
 
-> NB!!    
-> Authors: Xiao Chen, Jiazhen Huang
-
-The implementation is built upon [TPT](https://github.com/azshue/TPT).
-
-Experiment results are shown in [Link](https://docs.qq.com/sheet/DZUp4dFRZZER0VVdy?tab=jci45g).
+The implementation is built upon [TPT](https://github.com/azshue/TPT). Experiment results are shown in [Link](https://docs.qq.com/sheet/DZUp4dFRZZER0VVdy?tab=jci45g).
 
 ## Available algorithms
-The [currently available algorithms](https://github.com/LINs-lab/ttab/tree/main/ttab/model_adaptation) are:
+The [currently available algorithms](https://github.com/Cevaaa/TTABC_basic/tree/main/ttabc/model_selection) are:
 
-- Batch Normalization Test-time Adaptation (BN_Adapt, [Schneider et al., 2020](https://arxiv.org/abs/2006.16971))
-- Source Hypothesis Transfer (SHOT, [Liang et al., 2020](https://arxiv.org/abs/2002.08546))
-- Test-time Training (TTT, [Sun et al., 2020](https://arxiv.org/abs/1909.13231))
-- Test-time Entropy Minimization (TENT, [Wang et al., 2021](https://arxiv.org/abs/2006.10726))
-- Test-time Template Adjuster (T3A, [Iwasawa & Matsuo, 2021](https://proceedings.neurips.cc/paper/2021/hash/1415fe9fea0fa1e45dddcff5682239a0-Abstract.html))
-- Marginal Entropy Minimization (MEMO, [Zhang et al., 2022](https://arxiv.org/abs/2110.09506))
-- Non-i.i.d.Test-time Adaptation (NOTE, [Gong et al., 2022](https://arxiv.org/abs/2208.05117))
-- Continual Test-time Adaptation (CoTTA, [Wang et al., 2022](https://arxiv.org/abs/2203.13591))
-- Conjugate Pseudo-Labels (Conjugate PL, [Goyal et al., 2022](https://arxiv.org/abs/2207.09640))
-- Efficient Anti-forgetting Test-time Adaptation (EATA, [Niu et al., 2022](https://arxiv.org/abs/2204.02610))
-- Sharpness-aware Entropy Minimization (SAR, [Niu et al., 2023](https://arxiv.org/abs/2302.12400))
+- Learning Transferable Visual Models From Natural Language Supervision (zero-shot, [Alec Radford et al., 2021](https://arxiv.org/abs/2103.00020))
+- Test-Time Prompt Tuning for Zero-Shot Generalization in Vision-Language Models (TPT, [Manli Shu et al., 2022](https://arxiv.org/abs/2209.07511))
+- C-TPT: Calibrated Test-Time Prompt Tuning for Vision-Language Models via Text Feature Dispersion (C-TPT, [Hee Suk Yoon et al., 2024](https://arxiv.org/abs/2403.14119))
+- Efficient Test-Time Adaptation of Vision-Language Models (TDA, [Adilbek Karmanov et al., 2024](https://arxiv.org/abs/2403.18293))
+- BoostAdapter: Improving Vision-Language Test-Time Adaptation via Regional Bootstrapping (BoostAdapter, [Taolin Zhang et al., 2024](https://arxiv.org/abs/2410.15430))
+- O-TPT: Orthogonality Constraints for Calibrating Test-time Prompt Tuning in Vision-Language Models (O-TPT, [Ashshak Sharifdeen et al., 2025](https://arxiv.org/abs/2503.12096))
 
-Send us a PR to add your algorithm! Our implementations use ResNets ([He et al., 2015](https://arxiv.org/abs/1512.03385)) and ViTs ([Dosovitskiy et al., 2020](https://arxiv.org/abs/2010.11929)) pretrained by ERM or self-supervised rotation prediction task ([Gidaris et al., 2018](https://arxiv.org/abs/1803.07728)).
+Send us a PR to add your algorithm!
 
 ## Available datasets
 
@@ -37,27 +27,66 @@ Our evaluation focuses on
 Prepare the datasets based on the following link [TPT](https://github.com/azshue/TPT).
 The download links of currently available datasets are:
 
-> Download link:
-> + [Imagenet-A](https://people.eecs.berkeley.edu/~hendrycks/imagenet-a.tar)
-> + [ImageNet-V2](https://huggingface.co/datasets/vaishaal/ImageNetV2/tree/main)
-> + [Imagenet-R](https://people.eecs.berkeley.edu/~hendrycks/imagenet-r.tar)
-> + [Imagenet-Sketch](https://www.kaggle.com/datasets/wanghaohan/imagenetsketch)
-> + [CIFAR-10-C](https://zenodo.org/records/2535967/files/CIFAR-10-C.tar?download=1)
-> + [CIFAR-100-C](https://zenodo.org/records/3555552/files/CIFAR-100-C.tar?download=1)
-> + [ImageNet-C](https://zenodo.org/records/2235448)
+<details>
+<summary>Download link</summary>
 
-Send us a PR to add your dataset! Any custom image dataset with folder structure `dataset/domain/class/image.xyz` is readily usable.
++ [Imagenet-A](https://people.eecs.berkeley.edu/~hendrycks/imagenet-a.tar)
++ [ImageNet-V2](https://huggingface.co/datasets/vaishaal/ImageNetV2/tree/main)
++ [Imagenet-R](https://people.eecs.berkeley.edu/~hendrycks/imagenet-r.tar)
++ [Imagenet-Sketch](https://www.kaggle.com/datasets/wanghaohan/imagenetsketch)
++ [CIFAR-10-C](https://zenodo.org/records/2535967/files/CIFAR-10-C.tar?download=1)
++ [CIFAR-100-C](https://zenodo.org/records/3555552/files/CIFAR-100-C.tar?download=1)
++ [ImageNet-C](https://zenodo.org/records/2235448)
++ [Flower102](https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz)
++ [DTD](https://www.robots.ox.ac.uk/~vgg/data/dtd/download/dtd-r1.0.1.tar.gz)
++ [OxfordPets](https://www.robots.ox.ac.uk/~vgg/data/pets/data/images.tar.gz)
++ [StanfordCars](https://ai.stanford.edu/~jkrause/cars/car_dataset.html)
++ [UCF101](https://drive.google.com/file/d/10Jqome3vtUA2keJkNanAiFpgbyC9Hc2O/view?usp=sharing)
++ [Caltech101](http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz)
++ [Food101](http://data.vision.ee.ethz.ch/cvl/food-101.tar.gz)
++ [SUN397](http://vision.princeton.edu/projects/2010/SUN/SUN397.tar.gz)
++ [Aircraft](https://www.robots.ox.ac.uk/~vgg/data/fgvc-aircraft/archives/fgvc-aircraft-2013b.tar.gz)
++ [EuroSAT](http://madm.dfki.de/files/sentinel/EuroSAT.zip)
+
+</details>
+
+<details>
+<summary>Dataset path</summary>
+
+> /path/to/your/data/root  
+> ├── Aircraft  
+> ├── Caltech101  
+> ├── CIFAR-10  
+> ├── CIFAR-100  
+> ├── CIFAR-100-C  
+> ├── CIFAR-10-C  
+> ├── DTD  
+> ├── EuroSAT  
+> ├── Flower102  
+> ├── Food101  
+> ├── ImageNet  
+> ├── imagenet-a  
+> ├── imagenet-c  
+> ├── imagenet-r  
+> ├── ImageNet-Sketch  
+> ├── imagenetv2-matched-frequency-format-val  
+> ├── OxfordPets  
+> ├── StanfordCars  
+> ├── SUN397  
+> ├── UCF101
+
+</details>
 
 ## Installation
 ```bash
 
 # Clone this repo
-git clone https://github.com/Cevaaa/TTABC.git
-cd N-TPT
+git clone https://github.com/Cevaaa/TTABC_basic.git
+cd TTABC_basic
 
 # Create a conda enviroment
-conda create -n ntpt python=3.10 -y
-conda activate ntpt
+conda create -n ttabc python=3.10 -y
+conda activate ttabc
 
 # Install PyTorch. Below is a sample command to do this, but you should check the following link
 # to find installation instructions that are specific to your compute platform:
@@ -78,26 +107,24 @@ An example to run TPT:
 
 bash ./test_ds_example.sh R # test on imgenet-r
 bash ./test_ds_example.sh I/A/V/R/K # test on imgenet, imgenet-a, imgenet-v, imgenet-r and imgenet-k
-# NOTE: some methods can only be tested on one dataset
 
 ```
 
-The command line argument {dataset} can be specified as follows: ‘I’, ‘DTD’, ‘Flower102’, ‘Food101’, ‘StanfordCars’, ‘SUN397’, ‘Aircraft’, ‘OxfordPets’, ‘Caltech101’, ‘UCF101’, or ‘EuroSAT’ for fine-grained classification datasets, and ‘V2’, ‘A’, ‘R’, or ‘K’ for datasets with natural distribution shifts.
+The command line argument `{dataset}` can be specified as follows: `I`, `DTD`, `Flower102`, `Food101`, `StanfordCars`, `SUN397`, `Aircraft`, ‘OxfordPets’, `Caltech101`, `UCF101`, or `EuroSAT` for fine-grained classification datasets, and `V2`, `A`, `R`, or `K` for datasets with natural distribution shifts.
 
 ## Adding a new method
 
-First, create a `newMethod.py` file under `./methods`. In this file, create the class `newMethod` and make it inherit from `methods.base_method.BaseMethod`. Make sure that the functions `test_time_tuning` and `test_time_adapt_eval` have been implemented.
+First, create a `newMethod.py` file under `./ttabc/model_selection`. In this file, create the class `newMethod` and make it inherit from `./ttabc/model_selection/base_method.BaseMethod`. Make sure that the functions `test_time_tuning` and `test_time_adapt_eval` have been implemented.
 
-Then, add the dictionary key for `newMethod` and its corresponding return value in `./methods/__init__.py`.
+Then, add the dictionary key for `newMethod` and its corresponding return value in `./ttabc/model_selection/__init__.py`.
 
 Finally, add a `choices` option to `--run_type` in `./main.py` and implement the corresponding operation in `main_worker`.
 
 ## Acknowledgement
-This work was supported by Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government(MSIT) (No.2022-0-00184, Development and Study of AI Technologies to Inexpensively Conform to Evolving Policy on Ethics), and Institute of Information & communications Technology Planning & Evaluation (IITP) grant funded by the Korea government(MSIT) (No. 2022-0-00951, Development of Uncertainty-Aware Agents Learning by Asking Questions).
 
-Also, we thank the authors of the [CoOp/CoCoOp](https://github.com/KaiyangZhou/CoOp) and [TPT](https://github.com/azshue/TPT) for their open-source contributions and their assistance with the data preparation.
+We thank the authors of the [CoOp/CoCoOp](https://github.com/KaiyangZhou/CoOp) and [TPT](https://github.com/azshue/TPT) for their open-source contributions and their assistance with the data preparation.
 
-## Citation
+<!-- ## Citation
 If you find our work useful in your research, please cite:
 ```
 @article{chen2025small,
@@ -106,7 +133,7 @@ If you find our work useful in your research, please cite:
   journal={arXiv preprint arXiv:2506.02671},
   year={2025}
 }
-```
+``` -->
 
 ## Contact
-If you have any questions, please feel free to email chen-x25@mails.tsinghua.edu.cn
+If you have any questions, please feel free to email chen-x25@mails.tsinghua.edu.cn.

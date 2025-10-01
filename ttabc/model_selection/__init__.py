@@ -4,7 +4,6 @@ from .baseline import BASELINE
 from .tpt import TPT
 from .ctpt import CTPT
 from .otpt import OTPT
-from .ntpt import NTPT
 from .tda import TDA
 from .boostadapter import BoostAdapter
 
@@ -16,7 +15,6 @@ def get_method(method_name):
         'tpt': TPT,
         'ctpt': CTPT,
         'otpt': OTPT,
-        'ntpt': NTPT,
         'tda': TDA,
         'boostadapter': BoostAdapter,
     }

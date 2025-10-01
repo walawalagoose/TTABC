@@ -364,7 +364,7 @@ class ClipZeroShot(nn.Module):
         self.register_buffer("text_features", text_features)
          
     @property
-    def dtype_property(self):  # 添加 dtype 属性访问器
+    def dtype_property(self):  # Add dtype property accessor
         return self.image_encoder.conv1.weight.dtype
     
     def reset(self):

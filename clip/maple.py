@@ -147,12 +147,12 @@ class MultiModalPromptLearner(nn.Module):
         suffix = self.token_suffix
         prompts = self.construct_prompts(ctx, prefix, suffix)
 
-        # 为视觉侧准备深层提示
+        # Prepare deep prompts for the visual side
         visual_deep_prompts = []
         for index, layer in enumerate(self.compound_prompt_projections):
             visual_deep_prompts.append(layer(self.compound_prompts_text[index]))
             
-        # 返回文本提示和视觉提示
+        # Return text prompts and visual prompts
         return prompts, self.proj(self.ctx), self.compound_prompts_text, visual_deep_prompts
 
 
@@ -240,7 +240,7 @@ class MaPLe(nn.Module):
         checkpoint = torch.load(checkpoint_path, map_location=self.device)
         state_dict = checkpoint["state_dict"]
         
-        # 过滤固定的token
+        # Filter fixed tokens
         if "prompt_learner.token_prefix" in state_dict:
             del state_dict["prompt_learner.token_prefix"]
         if "prompt_learner.token_suffix" in state_dict:
