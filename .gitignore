@@ -1,23 +1,13 @@
-# Ignore all files and directories
-*
+# all python cache files
+**/__pycache__
+**/*.pyc
+**/*.pyo
 
-# Explicitly track specific directories and their contents
-!clip/
-!data/
-!ttabc/configs/
-!ttabc/model_selection/
-!ttabc/utils/
+# log and ckpt files
+/logs/
+/checkpoints/
+/.vscode/
 
-# Ignore specific files and directories
-__pycache__/
-*.pyc
-*.pyo
-
-# Explicitly track individual files
-!main.py
-!LICENSE
-!README.md
-!requirements.txt
-!test_ds_example.sh
-!test_fg_example.sh
-!.gitignore
+# your own scripts, pull once and never track again
+test_ds_example.sh
+test_fg_example.sh
