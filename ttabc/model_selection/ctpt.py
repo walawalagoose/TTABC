@@ -1,3 +1,9 @@
+"""
+    C-TPT: Calibrated Test-Time Prompt Tuning for Vision-Language Models via Text Feature Dispersion,
+    https://arxiv.org/abs/2403.14119,
+    https://github.com/hee-suk-yoon/C-TPT
+"""
+
 import time
 
 from PIL import Image

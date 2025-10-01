@@ -1,3 +1,10 @@
+"""
+    Efficient Test-Time Adaptation of Vision-Language Models,
+    https://arxiv.org/abs/2403.18293,
+    https://kdiaaa.github.io/tda/
+
+"""
+
 import time
 import operator
 import torch
