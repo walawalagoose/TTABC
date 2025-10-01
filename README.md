@@ -81,8 +81,8 @@ The download links of currently available datasets are:
 ```bash
 
 # Clone this repo
-git clone https://github.com/Cevaaa/TTABC_basic.git
-cd TTABC_basic
+git clone https://github.com/Cevaaa/TTABC.git
+cd TTABC
 
 # Create a conda enviroment
 conda create -n ttabc python=3.10 -y
