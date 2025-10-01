@@ -122,5 +122,25 @@ algorithm_defaults = {
             'mask_threshold': {'lower': 0.03, 'upper': 1.0}
         }
     },
+    
+    "difftpt": {
+        "tpt": True,
+        "prompt_type": 'coop', # can also be cocoop
+        "supported_list": ['coop', 'cocoop'],
+        # "load": 'checkpoints/coop/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
+        # "load": None,
+        "optimizer": "SGD",  # Adam for officehome
+        "batch_size": 32,
+        "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
+        "tta_steps": 1,  # number of test-time adaptation steps
+        "lr": 5e-3,  # learning rate
+        "n_ctx": 4,  # number of prompt tokens
+        
+        "selection_cosine": 0.8, # selection ratio based on cosine similarity
+        "selection_selfentro": 0.3, # selection ratio based on self-entropy
+        "diff_aug_size": 32, # kept the same as batch size
+        "diff_guidance_scale": 3.0, # SD guidance scale
+        "diff_times": 10, # diffusion steps
+    },
 
 }
