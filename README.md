@@ -58,8 +58,8 @@ The download links of currently available datasets are:
 > ├── Caltech101  
 > ├── CIFAR-10  
 > ├── CIFAR-100  
-> ├── CIFAR-100-C  
-> ├── CIFAR-10-C  
+> ├── cifar10_c  
+> ├── cifar100_c  
 > ├── DTD  
 > ├── EuroSAT  
 > ├── Flower102  
