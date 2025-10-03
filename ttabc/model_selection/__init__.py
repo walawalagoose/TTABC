@@ -6,6 +6,8 @@ from .ctpt import CTPT
 from .otpt import OTPT
 from .tda import TDA
 from .boostadapter import BoostAdapter
+from .difftpt import DiffTPT
+from .zero import ZERO
 
 
 def get_method(method_name):
@@ -17,6 +19,8 @@ def get_method(method_name):
         'otpt': OTPT,
         'tda': TDA,
         'boostadapter': BoostAdapter,
+        'difftpt': DiffTPT,
+        'zero': ZERO,
     }
     
     if method_name not in method_dict:

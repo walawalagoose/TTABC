@@ -185,6 +185,35 @@ def select_confident_samples(logits, top):
     idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * top)]
     return logits[idx], idx
 
+def select_confident_samples_cosine(logits, selection_cosine, selection_selfentro):
+    cosine_distan = [torch.nn.CosineSimilarity(dim=0)(logits[0], logits[i]) for i in range(1, logits.shape[0])]
+    cosine_distan = torch.stack(cosine_distan)
+    idx_cosine = torch.argsort(cosine_distan, descending=True)[:int(cosine_distan.size()[0] * selection_cosine)]
+    # idx
+    for i in range(idx_cosine.shape[0]):
+        idx_cosine[i] +=1
+    logits_cos = logits[idx_cosine]
+    logits = torch.cat((logits[0, :].unsqueeze(0), logits_cos), dim=0)
+
+    batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
+    idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * selection_selfentro)]
+
+    return logits[idx], [idx_cosine, idx], cosine_distan
+
+def break_sample_tie(ties, logit, device):
+    ties = torch.tensor(ties, dtype=torch.int, device=device)
+    logit[~ties] = -torch.inf
+    scalar_pred = torch.argmax(logit, dim=-1)
+    return scalar_pred
+
+def greedy_break(ties, logits, device):
+    ties_tensor = torch.tensor(ties, dtype=torch.int, device=device)
+    preds = torch.argmax(logits, dim=1)
+    for pred in preds:
+        if pred in ties_tensor:
+            return pred
+    return break_sample_tie(ties, logit=logits[0], device=device)
+
 """
     Common loss functions for test-time adaptation
 """

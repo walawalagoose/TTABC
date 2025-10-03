@@ -143,4 +143,11 @@ algorithm_defaults = {
         "diff_times": 10, # diffusion steps
     },
 
+    "zero": {
+        "tpt": True,
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        "batch_size": 64, # quals to aug_size
+        "selection_p": 0.3,
+    },
 }
