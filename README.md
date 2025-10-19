@@ -7,11 +7,13 @@ The implementation is built upon [TPT](https://github.com/azshue/TPT). Experimen
 ## Available algorithms
 The [currently available algorithms](https://github.com/Cevaaa/TTABC_basic/tree/main/ttabc/model_selection) are:
 
-- Learning Transferable Visual Models From Natural Language Supervision (zero-shot, [Alec Radford et al., 2021](https://arxiv.org/abs/2103.00020))
+- Learning Transferable Visual Models From Natural Language Supervision (Zero-Shot CLIP, [Alec Radford et al., 2021](https://arxiv.org/abs/2103.00020))
 - Test-Time Prompt Tuning for Zero-Shot Generalization in Vision-Language Models (TPT, [Manli Shu et al., 2022](https://arxiv.org/abs/2209.07511))
+- Diverse Data Augmentation with Diffusions for Effective Test-time Prompt Tuning (DiffTPT, [Chun-Mei Feng et al., 2023](https://arxiv.org/abs/2308.06038))
 - C-TPT: Calibrated Test-Time Prompt Tuning for Vision-Language Models via Text Feature Dispersion (C-TPT, [Hee Suk Yoon et al., 2024](https://arxiv.org/abs/2403.14119))
 - Efficient Test-Time Adaptation of Vision-Language Models (TDA, [Adilbek Karmanov et al., 2024](https://arxiv.org/abs/2403.18293))
 - BoostAdapter: Improving Vision-Language Test-Time Adaptation via Regional Bootstrapping (BoostAdapter, [Taolin Zhang et al., 2024](https://arxiv.org/abs/2410.15430))
+- Frustratingly Easy Test-Time Adaptation of Vision-Language Models (ZERO, [Matteo Farina et al., 2024](https://arxiv.org/abs/2405.18330))
 - O-TPT: Orthogonality Constraints for Calibrating Test-time Prompt Tuning in Vision-Language Models (O-TPT, [Ashshak Sharifdeen et al., 2025](https://arxiv.org/abs/2503.12096))
 
 Send us a PR to add your algorithm!
