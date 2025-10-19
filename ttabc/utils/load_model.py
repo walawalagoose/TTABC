@@ -56,13 +56,13 @@ def create_model(args):
         model = get_coop(args.arch, args.test_sets, args.gpu, args.n_ctx, args.ctx_init)
         if args.load is not None:
             print("Use pre-trained soft prompt (CoOp) as initialization")
-            pretrained_ctx = torch.load(args.load)['state_dict']['ctx']
+            pretrained_ctx = torch.load(args.load, weights_only=False)['state_dict']['ctx']
             assert pretrained_ctx.size()[0] == args.n_ctx
             with torch.no_grad():
-                #model.prompt_learner[0].ctx.copy_(pretrained_ctx)
-                #model.prompt_learner[0].ctx_init_state = pretrained_ctx
-                model.backbone.prompt_learner.ctx.copy_(pretrained_ctx)
-                model.backbone.prompt_learner.ctx_init_state = pretrained_ctx
+                model.prompt_learner.ctx.copy_(pretrained_ctx)
+                model.prompt_learner.ctx_init_state = pretrained_ctx
+                # model.backbone.prompt_learner.ctx.copy_(pretrained_ctx)
+                # model.backbone.prompt_learner.ctx_init_state = pretrained_ctx
         model_state = None # beacuse coop already has ctx_init_state
         for name, param in model.named_parameters():
             if "prompt_learner" not in name:
@@ -94,7 +94,7 @@ def create_model(args):
                 p.requires_grad_(True)
             if args.load is not None:
                 print("Use pre-trained soft prompt (CoOp) as initialization")
-                pretrained_ctx = torch.load(args.load)['state_dict']['ctx']
+                pretrained_ctx = torch.load(args.load, weights_only=False)['state_dict']['ctx']
                 assert pretrained_ctx.size()[0] == args.n_ctx
                 with torch.no_grad():
                     model.prompt_learner.ctx_init_state = pretrained_ctx
