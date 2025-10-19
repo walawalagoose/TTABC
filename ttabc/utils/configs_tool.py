@@ -95,11 +95,12 @@ def str_to_none(value):
     if value is None:  # Already None
         return None
     if isinstance(value, str):
+        value_ori = value
         value = value.strip().lower()
         none_values = {'none', 'null', 'n', '', 'nil'}
         if value in none_values:
             return None
-    return value  # Return original value if not None-like
+    return value_ori  # Return original value if not None-like
 
 
 def convert_config_params(config, bool_params, none_params):
