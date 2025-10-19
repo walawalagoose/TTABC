@@ -86,14 +86,17 @@ class ZEROSHOT(BaseMethod):
                 # Save results if result_dict is provided (for ECE calculation)
                 if result_dict is not None:
                     max_confidence, max_index = torch.max(softmax_output, 1)
-                    # Handle batch of samples
-                    for j in range(max_confidence.size(0)):
-                        result_dict['max_confidence'].append(max_confidence[j].item())
-                        result_dict['prediction'].append(max_index[j].item())
-                        result_dict['label'].append(target[j].item())
-                    # result_dict['max_confidence'].append(max_confidence.item())
-                    # result_dict['prediction'].append(max_index.item())
-                    # result_dict['label'].append(target.item())
+                    
+                    if self.args.tpt:
+                        result_dict['max_confidence'].append(max_confidence.item())
+                        result_dict['prediction'].append(max_index.item())
+                        result_dict['label'].append(target.item())
+                    else:
+                        # Handle batch of samples
+                        for j in range(max_confidence.size(0)):
+                            result_dict['max_confidence'].append(max_confidence[j].item())
+                            result_dict['prediction'].append(max_index[j].item())
+                            result_dict['label'].append(target[j].item())
                 
                 # Calculate accuracy
                 acc1, acc5 = accuracy(output, target, topk=(1, 5))

@@ -7,15 +7,17 @@ import math
 
 algorithm_defaults = {
     "zero_shot": {
-        "tpt": False,
+        "tpt": False, # True is also supported
         "prompt_type": 'no_prompt',
         "load": None,
     },
     "baseline": {
-        "tpt": False,
-        # "prompt_type": 'coop', # actually it can be epuipped with any prompt type
+        "tpt": True,
+        "prompt_type": 'coop',
         "supported_list": ['coop', 'cocoop', 'vp', 'maple'],
-        # "load": None,
+        "load": None,
+        # "load": 'checkpoints/coop/16shots/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner/model.pth.tar-50',
+        # "load": 'checkpoints/cocoop/16shots/rn50_c4_ep10_batch1/seed1/prompt_learner/model.pth.tar-10',
     },
     "tpt": {
         "tpt": True,
@@ -23,8 +25,9 @@ algorithm_defaults = {
         "supported_list": ['coop', 'cocoop', 'vp'],
         "vp_type": 'lor_vp',
         "vp_mode": 'coop', # 'zs' or 'coop', 'cocoop' not supported yet
-        # "load": 'checkpoints/coop/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner',
-        # "load": None,
+        "load": None,
+        # "load": 'checkpoints/coop/16shots/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner/model.pth.tar-50',
+        # "load": 'checkpoints/cocoop/16shots/rn50_c4_ep10_batch1/seed1/prompt_learner/model.pth.tar-10',
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
@@ -147,7 +150,7 @@ algorithm_defaults = {
         "tpt": True,
         "prompt_type": 'no_prompt',
         "supported_list": ['no_prompt'],
-        "batch_size": 64, # quals to aug_size
+        "batch_size": 64, # equals to aug_size
         "selection_p": 0.3,
     },
 }
