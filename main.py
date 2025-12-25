@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test-time Prompt Tuning')
     # data
     parser.add_argument('data', metavar='DIR', help='path to dataset root')
-    parser.add_argument('--test_sets', type=str, default='A/R/V/K/I', help='test dataset (multiple datasets split by slash)')
+    parser.add_argument('--test_sets', type=str, default='A/R/V/K/I/imagenetc', help='test dataset (multiple datasets split by slash)')
     parser.add_argument('--dataset_mode', type=str, default='test', help='which split to use: train/val/test')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
     # TTA method and prompting
     parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple')
-    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero'], help='which TTA method to use')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'dmn'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=False, help='run test-time prompt tuning')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     # prompting config
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')
     parser.add_argument('--tta_steps', default=1, type=int, help='test-time-adapt steps')
-    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--seed', type=int, default=2022)
     parser.add_argument('--gpu', default=0, type=int,
                         help='GPU id to use.')
     # logging
