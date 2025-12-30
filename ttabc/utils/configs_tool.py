@@ -24,9 +24,14 @@ def config_hparams(config):
     ), "base_data_name must be specified, either from default scenario, or from user-provided inputs."
 
     # register default arguments based on model_adaptation_method
-    config = defaults_registry(
-        config, template=algorithm_defaults[config.run_type]
-    )
+    # register default arguments based on model_adaptation_method
+    if config.run_type in algorithm_defaults:
+        config = defaults_registry(
+            config, template=algorithm_defaults[config.run_type]
+        )
+    else:
+        print(f"Warning: Algorithm '{config.run_type}' not found in defaults registry. Using command line arguments only.")
+
     bool_params = ['tpt', 'cocoop', 'two_step', 'I_augmix']
     none_params = ['ctx_init', 'load', 'log_dir']
 

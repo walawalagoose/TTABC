@@ -46,7 +46,7 @@ class BaseMethod:
         # define optimizer
         self.optimizer, self.optim_state = set_optimizer(args, self.model)
         # setup automatic mixed-precision (Amp) loss scaling
-        self.scaler = torch.amp.GradScaler(init_scale=1000, device='cuda')
+        self.scaler = torch.cuda.amp.GradScaler(init_scale=1000)
         print('=> Using native Torch AMP. Training in mixed precision.')
 
     def test_time_tuning(self, inputs):
