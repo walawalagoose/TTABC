@@ -200,19 +200,6 @@ def select_confident_samples_cosine(logits, selection_cosine, selection_selfentr
 
     return logits[idx], [idx_cosine, idx], cosine_distan
 
-def break_sample_tie(ties, logit, device):
-    ties = torch.tensor(ties, dtype=torch.int, device=device)
-    logit[~ties] = -torch.inf
-    scalar_pred = torch.argmax(logit, dim=-1)
-    return scalar_pred
-
-def greedy_break(ties, logits, device):
-    ties_tensor = torch.tensor(ties, dtype=torch.int, device=device)
-    preds = torch.argmax(logits, dim=1)
-    for pred in preds:
-        if pred in ties_tensor:
-            return pred
-    return break_sample_tie(ties, logit=logits[0], device=device)
 
 """
     Common loss functions for test-time adaptation

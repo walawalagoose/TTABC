@@ -16,7 +16,7 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, greedy_break
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy
 from ttabc.model_selection.base_method import BaseMethod
 
 def select_confident_samples_zero(logits: torch.Tensor, probs: torch.Tensor, top:float, return_idx: bool=False):
@@ -26,6 +26,20 @@ def select_confident_samples_zero(logits: torch.Tensor, probs: torch.Tensor, top
     if not return_idx:
         return logits[filt_idx]
     return logits[filt_idx], filt_idx, full_idx
+
+def break_sample_tie(ties, logit, device):
+    ties = torch.tensor(ties, dtype=torch.int, device=device)
+    logit[~ties] = -torch.inf
+    scalar_pred = torch.argmax(logit, dim=-1)
+    return scalar_pred
+
+def greedy_break(ties, logits, device):
+    ties_tensor = torch.tensor(ties, dtype=torch.int, device=device)
+    preds = torch.argmax(logits, dim=1)
+    for pred in preds:
+        if pred in ties_tensor:
+            return pred
+    return break_sample_tie(ties, logit=logits[0], device=device)
 
 class ZERO(BaseMethod):
     '''
@@ -70,10 +84,10 @@ class ZERO(BaseMethod):
 
             # compute probabilities and confidence filter
             with torch.no_grad():
-                logits_ori, _ = self.model(images)
-                logits = logits_ori / self.model.logit_scale.exp() # unscaled logits
-                probs = logits_ori.softmax(1)
-                logits_filt, _, sorted_idx = select_confident_samples_zero(logits, probs, top=self.args.selection_p, return_idx=True) # retain most confident views
+                logits, _ = self.model(images) # scaled logits
+                logits_ori = logits / self.model.logit_scale.exp() # unscaled logits
+                probs = logits.softmax(1)
+                logits_filt, _, sorted_idx = select_confident_samples_zero(logits_ori, probs, top=self.args.selection_p, return_idx=True) # retain most confident views
 
             # zero-out the temperature, marginalize and predict
             zero_temp = torch.finfo(logits_filt.dtype).eps
@@ -89,15 +103,15 @@ class ZERO(BaseMethod):
             # if so, break ties greedily
             if len(ties) > 1:
                 k = int(images.size(0) * self.args.selection_p) 
-                sorted_logits = logits[sorted_idx]
-                scalar_pred = greedy_break(ties, sorted_logits[k:], device=logits.device)
+                sorted_logits = logits_ori[sorted_idx]
+                scalar_pred = greedy_break(ties, sorted_logits[k:], device=logits_ori.device)
                 p_bar[scalar_pred]+=1
 
             # need to unsqueeze for compatibility with the 'accuracy' function
-            p_bar = p_bar.unsqueeze(0)
+            output = p_bar.unsqueeze(0)
             
             if result_dict is not None:
-                softmax_output = softmax(p_bar)
+                softmax_output = softmax(output)
                 
                 #maximum confidence of the softmax_output and its index
                 max_confidence, max_index = torch.max(softmax_output, 1)
@@ -108,7 +122,7 @@ class ZERO(BaseMethod):
                 result_dict['label'].append(target.item())
 
             # measure accuracy and record loss
-            acc1, acc5 = accuracy(p_bar, target, topk=(1, 5))
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
             
             top1.update(acc1[0], image.size(0))
             top5.update(acc5[0], image.size(0))
