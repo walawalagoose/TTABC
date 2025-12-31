@@ -9,6 +9,7 @@ from .boostadapter import BoostAdapter
 from .difftpt import DiffTPT
 from .zero import ZERO
 from .batclip import BATCLIP 
+from .promptalign import PROMPTALIGN
 
 def get_method(method_name):
     method_dict = {
@@ -22,6 +23,7 @@ def get_method(method_name):
         'difftpt': DiffTPT,
         'zero': ZERO,
         'batclip': BATCLIP,  # 添加这一行
+        'promptalign': PROMPTALIGN,
     }
     
     if method_name not in method_dict:

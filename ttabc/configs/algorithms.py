@@ -150,4 +150,27 @@ algorithm_defaults = {
         "batch_size": 64, # quals to aug_size
         "selection_p": 0.3,
     },
+
+    "promptalign": {
+        "tpt": True,
+        "prompt_type": 'maple', # PromptAlign uses MaPLe architecture
+        "supported_list": ['maple'],
+        "load": None,
+        "optimizer": "AdamW",  # Changed from SGD - PromptAlign uses AdamW for TTA
+        "batch_size": 64,
+        "ctx_init": "a photo of a",
+        "tta_steps": 1,
+        "lr": 4e-2, # TPT.LR from PromptAlign config (was 5e-4, should be 4e-2)
+        "n_ctx": 2, # TRAINER.PROMPTALIGN.N_CTX (was 4, should be 2 for DG)
+        "prompt_depth": 3, # TRAINER.PROMPTALIGN.PROMPT_DEPTH (was 9, should be 3 for DG)
+        "tpt_threshold": 0.1, # TPT.TPT_THRESHOLD
+        "align_threshold": 0.1, # TPT.ALIGN_THRESHOLD
+        "align_layer_from": 0, # TPT.ALIGN_LAYER_FROM
+        "align_layer_to": 3, # TPT.ALIGN_LAYER_TO (was 12, should be 3 for DG)
+        "distr_loss_w": 100.0, # TPT.DISTR_LOSS_W
+        "tpt_loss": True, # TPT.TPT_LOSS (usually True)
+        "distr_align": True, # TPT.DISTR_ALIGN (usually True)
+        "vis_means_path": "./outputs/features/Ipre_vis_means.pt",
+        "vis_vars_path": "./outputs/features/Ipre_vis_vars.pt",
+    },
 }
