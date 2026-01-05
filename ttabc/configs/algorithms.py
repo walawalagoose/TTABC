@@ -9,6 +9,7 @@ algorithm_defaults = {
     "zero_shot": {
         "tpt": False, # True is also supported
         "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
         "load": None,
     },
     "baseline": {
@@ -32,7 +33,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "tta_steps": 1,  # number of test-time adaptation steps
         "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
     },
@@ -46,7 +46,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "tta_steps": 1,  # number of test-time adaptation steps
         "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         "lambda_term": 2.0,  # lambda for c-tpt
@@ -62,7 +61,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "tta_steps": 1,  # number of test-time adaptation steps
         "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         "lambda_term": 2.0,  # lambda for o-tpt
@@ -135,7 +133,6 @@ algorithm_defaults = {
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 32,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
-        "tta_steps": 1,  # number of test-time adaptation steps
         "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         
@@ -152,5 +149,27 @@ algorithm_defaults = {
         "supported_list": ['no_prompt'],
         "batch_size": 64, # equals to aug_size
         "selection_p": 0.3,
+    },
+    
+    "batclip": {
+        # tpt=true, bs=aug_size or tpt=false, bs=batch_size
+        "tpt": False,
+        "prompt_type": 'norm',
+        "supported_list": ['norm'],
+        
+        "optimizer": "SGD",
+        "batch_size": 64,
+        "lr": 5e-3,
+    },
+    
+    "dmn": {
+        "tpt": True,
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        
+        "memory_size": 50,
+        "beta": 5.5,
+        "text_weight": 1.0,
+        "mem_weight": 0.03
     },
 }

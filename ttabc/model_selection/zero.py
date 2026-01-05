@@ -10,12 +10,6 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-try:
-    from torchvision.transforms import InterpolationMode
-    BICUBIC = InterpolationMode.BICUBIC
-except ImportError:
-    BICUBIC = Image.BICUBIC
-
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy
 from ttabc.model_selection.base_method import BaseMethod
 

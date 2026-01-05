@@ -9,6 +9,7 @@ from enum import Enum
 
 import torch
 import torchvision.transforms as transforms
+import torch.nn as nn
 import torch.nn.functional as F
 
 
@@ -215,6 +216,37 @@ def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
     """Entropy of softmax distribution from logits."""
     return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
+class I2TLoss(nn.Module):
+    def __init__(self):
+        super(I2TLoss, self).__init__()
+
+    def __call__(self, logits, img_feats, text_norm_feats):
+        labels = torch.argmax(logits.softmax(1), dim=1)
+        loss = 0.0
+        for l in torch.unique(labels, sorted = True).tolist():
+            img_idx_embeddings = img_feats[labels == l]
+            mean_feats = img_idx_embeddings.mean(0).type(text_norm_feats.dtype)
+            dist = torch.matmul(mean_feats.unsqueeze(0), text_norm_feats[l].unsqueeze(0).t()).mean()
+            loss += dist
+        return loss / len(torch.unique(labels))
+    
+class InterMeanLoss(nn.Module):
+    def __init__(self):
+        super(InterMeanLoss, self).__init__()
+        
+    def __call__(self, logits, img_feats):
+        labels = torch.argmax(logits.softmax(1), dim=1)
+        mean_feats = []
+        for l in torch.unique(labels, sorted = True).tolist():
+            img_idx_embeddings = img_feats[labels == l]
+            mean = img_idx_embeddings.mean(0)
+            mean_feats.append(mean / mean.norm())
+
+        cosine_sim_matrix = torch.matmul(torch.stack(mean_feats), torch.stack(mean_feats).t())
+        loss = 1 - cosine_sim_matrix
+        loss.fill_diagonal_(0)
+        return loss.sum()
+
 
 
 def resize_with_CLIP(x, resolution):
@@ -239,6 +271,8 @@ def reset_classnames(args, tpt_methods, class_names):
     if args.prompt_type in ['no_prompt', None]:
         tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'coop':
+        tpt_methods.model.reset_classnames(class_names, args.arch)
+    elif args.prompt_type in ['norm']:
         tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'cocoop':
             tpt_methods.model.prompt_generator.reset_classnames(class_names, args.arch)

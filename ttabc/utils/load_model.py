@@ -23,7 +23,7 @@ except ImportError:
     BICUBIC = Image.BICUBIC
 import torchvision.models as models
 
-from clip.custom_clip import get_coop, get_zero_shot
+from clip.custom_clip import get_coop, get_zero_shot, get_tta_norm
 from clip.cocoop import get_cocoop
 from clip.maple import get_maple
 from clip.visual_prompting import get_visual_prompt_clip
@@ -48,8 +48,15 @@ def create_model(args):
     else:
         classnames = imagenet_classes
         
+    assert args.prompt_type in args.supported_list, \
+        f"Prompting type {args.prompt_type} not supported for {args.run_type}"
+        
     if args.prompt_type in ['no_prompt', None]:
         model = get_zero_shot(args.arch, args.test_sets, args.gpu)
+        model_state = deepcopy(model.state_dict())
+        
+    elif args.prompt_type in ['norm']:
+        model = get_tta_norm(args.arch, args.test_sets, args.gpu)
         model_state = deepcopy(model.state_dict())
         
     elif args.prompt_type == 'coop':
@@ -153,6 +160,11 @@ def set_optimizer(args, model):
             return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
         
     if args.prompt_type in ['no_prompt', None]:
+        optimizer = None
+        optim_state = None
+    
+    # Since certain methods requires special parameter optimization, details will be implemented in the method file.
+    elif args.prompt_type in ['norm']:
         optimizer = None
         optim_state = None
         

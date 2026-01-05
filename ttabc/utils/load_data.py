@@ -1,18 +1,8 @@
-import argparse
-
-import time
-
-from copy import deepcopy
-
 from PIL import Image
 import numpy as np
 
 import torch
-import torch.nn.parallel
-import torch.backends.cudnn as cudnn
-import torch.optim
 import torch.utils.data
-import torch.utils.data.distributed
 import torchvision.transforms as transforms
 
 
@@ -21,10 +11,7 @@ try:
     BICUBIC = InterpolationMode.BICUBIC
 except ImportError:
     BICUBIC = Image.BICUBIC
-import torchvision.models as models
 
-from clip.custom_clip import get_coop
-from clip.cocoop import get_cocoop
 from data.imagnet_prompts import imagenet_classes
 from data.cifar_prompts import cifar10_classes, cifar100_classes
 from data.datautils import AugMixAugmenter, build_dataset

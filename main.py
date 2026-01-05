@@ -1,45 +1,19 @@
 import argparse
 
-import time
-
-from copy import deepcopy
-
 from PIL import Image
-import numpy as np
 
-import torch
-import torch.nn.parallel
 import torch.backends.cudnn as cudnn
-import torch.optim
-import torch.utils.data
-import torch.utils.data.distributed
 import torchvision.transforms as transforms
 
-
-try:
-    from torchvision.transforms import InterpolationMode
-    BICUBIC = InterpolationMode.BICUBIC
-except ImportError:
-    BICUBIC = Image.BICUBIC
 import torchvision.models as models
 
-from clip.custom_clip import get_coop
-from clip.cocoop import get_cocoop
-from data.imagnet_prompts import imagenet_classes
-from data.datautils import AugMixAugmenter, build_dataset
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, load_model_weight, set_random_seed, select_confident_samples, marginal_entropy, reset_classnames
-from ttabc.utils.metrics_tools import ece_calculator, ECE_Loss, accuracy_writer
-from ttabc.utils.load_model import create_model, set_optimizer
+from ttabc.utils.tools import set_random_seed, reset_classnames
+from ttabc.utils.metrics_tools import ece_calculator, accuracy_writer
 from ttabc.utils.load_data import create_dataloader
 from ttabc.model_selection import get_method
 from ttabc.utils.configs_tool import config_hparams
 from data.cls_to_names import *
-from data.fewshot_datasets import fewshot_datasets
-from data.imagenet_variants import thousand_k_to_200, imagenet_a_mask, imagenet_r_mask, imagenet_v_mask
 
-import ipdb
-import math
-import pickle
 from datetime import datetime
 import os
 
@@ -118,8 +92,8 @@ if __name__ == '__main__':
     # model
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
     # TTA method and prompting
-    parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple')
-    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'dmn'], help='which TTA method to use')
+    parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple', 'norm'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple/norm')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=True, help='run test-time prompt tuning')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     # prompting config

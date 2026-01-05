@@ -8,6 +8,8 @@ from .tda import TDA
 from .boostadapter import BoostAdapter
 from .difftpt import DiffTPT
 from .zero import ZERO
+from .batclip import BATCLIP
+# from .dmn import DMN
 
 
 def get_method(method_name):
@@ -21,6 +23,8 @@ def get_method(method_name):
         'boostadapter': BoostAdapter,
         'difftpt': DiffTPT,
         'zero': ZERO,
+        'batclip': BATCLIP,
+        # 'dmn': DMN,
     }
     
     if method_name not in method_dict:
