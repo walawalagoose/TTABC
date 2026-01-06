@@ -321,7 +321,9 @@ class HisTPT(BaseMethod):
         # === AFTER tuning: update memory once ===
         with torch.no_grad():    
             # 1. Compute entropy of current sample
-            entropy = self.compute_entropy(logits_aug)[0]
+            # TODO: take average entropy over augmentations, with entropy selection?
+            entropy = self.compute_entropy(logits_aug).mean()
+            # entropy = self.compute_entropy(logits_aug)[0]
             
             # 2. Update historical memory
             current_text_features = self.model.get_text_features()

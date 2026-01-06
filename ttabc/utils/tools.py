@@ -216,6 +216,14 @@ def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
     """Entropy of softmax distribution from logits."""
     return -(x.softmax(1) * x.log_softmax(1)).sum(1)
 
+class SoftTargetCrossEntropy(nn.Module):
+    def __init__(self):
+        super(SoftTargetCrossEntropy, self).__init__()
+
+    def forward(self, x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        loss = torch.sum(-target * F.log_softmax(x, dim=-1), dim=-1)
+        return loss.mean()
+
 class I2TLoss(nn.Module):
     def __init__(self):
         super(I2TLoss, self).__init__()

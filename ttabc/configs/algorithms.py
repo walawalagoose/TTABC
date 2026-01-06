@@ -152,14 +152,13 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        
         "optimizer": "SGD",
         "batch_size": 64,
     },
     
     "histpt": {
         # tpt=true/false are both supported, false is original HisTPT setting
-        "tpt": True,
+        "tpt": False,
         "prompt_type": 'coop',
         "supported_list": ['coop'],
         "load": None,
@@ -168,7 +167,6 @@ algorithm_defaults = {
         "n_ctx": 4,
         "ctx_init": 'a_photo_of_a',
         
-        # HisTPT specific parameters
         "memory_size": 32,  # Local knowledge bank size L=H=32
         "hard_topk": 16,  # Number of hard-sample features K=16
         "ema_momentum": 0.99,  # Update coefficient γ=0.99 for global knowledge bank
@@ -184,4 +182,17 @@ algorithm_defaults = {
         "text_weight": 1.0,
         "mem_weight": 0.03
     },
+    
+    "oga": {
+        "tpt": False,
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "batch_size": 64,
+        "shot_capacity": 8,
+        "tau": 0.05,
+        "sig_type": "RidgeMoorePenrose",
+        "normalize_mu": False,
+    },
+    
+    
 }
