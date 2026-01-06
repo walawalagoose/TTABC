@@ -93,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
     # TTA method and prompting
     parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple', 'norm'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple/norm')
-    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn'], help='which TTA method to use')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=True, help='run test-time prompt tuning')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     # prompting config

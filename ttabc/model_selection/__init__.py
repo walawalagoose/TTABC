@@ -10,6 +10,7 @@ from .difftpt import DiffTPT
 from .zero import ZERO
 from .batclip import BATCLIP
 # from .dmn import DMN
+from .histpt import HisTPT
 
 
 def get_method(method_name):
@@ -25,6 +26,7 @@ def get_method(method_name):
         'zero': ZERO,
         'batclip': BATCLIP,
         # 'dmn': DMN,
+        'histpt': HisTPT,
     }
     
     if method_name not in method_dict:

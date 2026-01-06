@@ -33,7 +33,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
     },
     "ctpt": {
@@ -46,7 +45,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         "lambda_term": 2.0,  # lambda for c-tpt
         "two_step": False,  # whether to use two-step training
@@ -61,7 +59,6 @@ algorithm_defaults = {
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
-        "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         "lambda_term": 2.0,  # lambda for o-tpt
         "two_step": False,  # whether to use two-step training
@@ -133,7 +130,6 @@ algorithm_defaults = {
         "optimizer": "SGD",  # Adam for officehome
         "batch_size": 32,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
-        "lr": 5e-3,  # learning rate
         "n_ctx": 4,  # number of prompt tokens
         
         "selection_cosine": 0.8, # selection ratio based on cosine similarity
@@ -159,7 +155,23 @@ algorithm_defaults = {
         
         "optimizer": "SGD",
         "batch_size": 64,
-        "lr": 5e-3,
+    },
+    
+    "histpt": {
+        # tpt=true/false are both supported, false is original HisTPT setting
+        "tpt": True,
+        "prompt_type": 'coop',
+        "supported_list": ['coop'],
+        "load": None,
+        "optimizer": "SGD",
+        "batch_size": 1,
+        "n_ctx": 4,
+        "ctx_init": 'a_photo_of_a',
+        
+        # HisTPT specific parameters
+        "memory_size": 32,  # Local knowledge bank size L=H=32
+        "hard_topk": 16,  # Number of hard-sample features K=16
+        "ema_momentum": 0.99,  # Update coefficient γ=0.99 for global knowledge bank
     },
     
     "dmn": {
