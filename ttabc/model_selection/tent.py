@@ -1,7 +1,6 @@
 """
-    BATCLIP: Bimodal Online Test-Time Adaptation for CLIP,
-    https://arxiv.org/abs/2412.02837,
-    https://github.com/sarthaxxxxx/BATCLIP
+    Tent: Fully test-time adaptation by entropy minimization,
+    https://arxiv.org/abs/2006.10726
 """
 
 import time
@@ -11,38 +10,36 @@ import torch.nn.functional as F
 
 from copy import deepcopy
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, build_optimizer, softmax_entropy, I2TLoss, InterMeanLoss
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, build_optimizer, softmax_entropy
 from ttabc.model_selection.base_method import BaseMethod
 
-class BATCLIP(BaseMethod):
+class Tent(BaseMethod):
     def __init__(self, args):
         super().__init__(args)
         self.args = args
         
-        # Setup loss functions
-        self.i2t_loss = I2TLoss()
-        self.inter_mean_loss = InterMeanLoss()
-        # Configure model for BATCLIP adaptation
+        # Configure model for Tent adaptation
         self.configure_model()
         # Store initial model and optimizer states
         self.model_state_dict = deepcopy(self.model.state_dict())
         self.optim_state = deepcopy(self.optimizer.state_dict())
     
     def configure_model(self):
-        """Same as Tent, only adapt normalization layers."""
+        """Only adapt normalization layers for image encoder."""
         self.model.eval()
         self.model.requires_grad_(False)
         
         # Enable normalization layers for adaptation
-        for m in self.model.modules():
+        for m in self.model.image_encoder.modules():
             if isinstance(m, nn.BatchNorm2d):
-                m.train()
                 m.requires_grad_(True)
                 m.track_running_stats = False
                 m.running_mean = None
                 m.running_var = None
-            elif isinstance(m, (nn.LayerNorm, nn.BatchNorm1d, nn.GroupNorm)):
+            elif isinstance(m, nn.BatchNorm1d):
                 m.train()
+                m.requires_grad_(True)
+            elif isinstance(m, (nn.LayerNorm, nn.GroupNorm)):
                 m.requires_grad_(True)
         
         # Re-create optimizer with only normalization layer parameters
@@ -54,7 +51,7 @@ class BATCLIP(BaseMethod):
     def configure_trainable_parameters(self):
         params = []
         names = []
-        for nm, m in self.model.named_modules():
+        for nm, m in self.model.image_encoder.named_modules():
             if isinstance(m, (nn.BatchNorm1d, nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)):
                 for np, p in m.named_parameters():
                     if np in ['weight', 'bias']:  # weight is scale, bias is shift
@@ -70,18 +67,14 @@ class BATCLIP(BaseMethod):
     def test_time_tuning(self, images):
         for _ in range(self.args.tta_steps):
             with torch.amp.autocast(device_type='cuda'):
-                logits, _, text_feat, img_pre_feats, _ = self.model(images, return_features=True)
-                
-                ent_loss = softmax_entropy(logits).mean(0)
-                i2t_loss = -self.i2t_loss(logits, img_pre_feats, text_feat)
-                inter_mean_loss = -self.inter_mean_loss(logits, img_pre_feats)
-                loss = ent_loss + i2t_loss + inter_mean_loss
+                logits = self.model(images, return_features=False)
+                loss = softmax_entropy(logits).mean(0)
             self.optimizer.zero_grad()
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
         return
-
+    
     def test_time_adapt_eval(self, val_loader, result_dict=None):
         batch_time = AverageMeter('Time', ':6.3f', Summary.NONE)
         top1 = AverageMeter('Acc@1', ':6.2f', Summary.AVERAGE)
@@ -99,12 +92,10 @@ class BATCLIP(BaseMethod):
             assert self.args.gpu is not None
             if isinstance(images, list): # sample-wise
                 for k in range(len(images)):
-                    # images[k] = resize_with_CLIP(images[k], self.args.resolution).cuda(self.args.gpu, non_blocking=True)
                     images[k] = images[k].cuda(self.args.gpu, non_blocking=True)
                 image = images[0]
                 images = torch.cat(images, dim=0)
             else: # batch-wise
-                # images = resize_with_CLIP(images, self.args.resolution).cuda(self.args.gpu, non_blocking=True)
                 images = images.cuda(self.args.gpu, non_blocking=True)
                 image = images
             target = target.cuda(self.args.gpu, non_blocking=True)

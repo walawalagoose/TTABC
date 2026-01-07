@@ -14,6 +14,8 @@ from .histpt import HisTPT
 from .oga import OGA
 from .bca import BCA
 from .dota import DOTA
+from .tent import Tent
+from .sar import SAR
 
 
 def get_method(method_name):
@@ -33,6 +35,8 @@ def get_method(method_name):
         'oga': OGA,
         'bca': BCA,
         'dota': DOTA,
+        'tent': Tent,
+        'sar': SAR,
     }
     
     if method_name not in method_dict:

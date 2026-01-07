@@ -225,5 +225,44 @@ algorithm_defaults = {
         "init_mu_value": 1e-3,
     },
 
-    
+    "tent": {
+        "tpt": False,
+        "prompt_type": 'norm',
+        "supported_list": ['norm'],
+        "optimizer": "SGD",
+        "batch_size": 64,
+        "episodic": False,
+    },
+    "sar": {
+        "tpt": False,
+        "prompt_type": 'norm',
+        "supported_list": ['norm'],
+        "optimizer": "SGD",
+        "batch_size": 64,
+        "episodic": False,
+        
+        "sar_margin_e0": 0.40,  # remember to multiply math.log(num_classes)
+        "reset_constant_em": 0.2,  # threshold e_m for model recovery scheme
+    },
+    "deyo": {
+        "tpt": False,
+        "prompt_type": 'norm',
+        "supported_list": ['norm'],
+        "optimizer": "SGD",
+        "batch_size": 64,
+        "episodic": False,
+        
+        "deyo_margin": 0.50, # remember to multiply math.log(num_classes)
+        "filter_ent": True, # whether to filter samples by entropy
+        "aug_type": "patch", # the augmentation type for prime
+        "occlusion_size": 112, # choises for occ
+        "row_start": 56, # choises for occ
+        "column_start": 56, # choises for occ
+        "patch_len": 4, # choises for patch
+        "filter_plpd": True, # whether to filter samples by plpd
+        "plpd_threshold": 0.3, # plpd threshold for DeYO
+        "reweight_ent": 1, # reweight entropy loss
+        "reweight_plpd": 1, # reweight plpd loss
+        "margin": 0.40, # remember to multiply math.log(num_classes)
+    },
 }

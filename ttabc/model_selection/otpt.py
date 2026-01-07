@@ -176,7 +176,7 @@ class OTPT(BaseMethod):
                 if self.args.tta_steps > 0:
                     if self.args.episodic:
                         with torch.no_grad():
-                            self.reset()
+                            self.model.reset()
                 self.optimizer.load_state_dict(self.optim_state)
 
                 self.test_time_tuning(images)

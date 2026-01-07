@@ -386,11 +386,12 @@ class HisTPT(BaseMethod):
             target = target.cuda(self.args.gpu, non_blocking=True)
 
             # Test-time tuning
-            if self.args.tta_steps > 0 and self.args.episodic:
+            if self.args.tta_steps > 0:
                 # Reset prompt (but NOT historical memory - that's the key!)
-                # TODO: Test if resetting is needed
-                with torch.no_grad():
-                    self.model.reset()
+                if self.args.episodic:
+                    # Episodic reset (default disabled)
+                    with torch.no_grad():
+                        self.model.reset()
                 self.optimizer.load_state_dict(self.optim_state)
                 
                 # Perform tuning
