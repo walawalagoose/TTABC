@@ -138,11 +138,9 @@ class DOTA(BaseMethod):
                 clip_logits, selected_idx = select_confident_samples(clip_logits, self.args.selection_p)
                 image_features = image_features[selected_idx]
                 prob_map = prob_map[selected_idx]
-
-            # CLIP side: average logits over selected views
-            clip_logits = clip_logits.mean(dim=0, keepdim=True)  # (1,K)
+                clip_logits = clip_logits.mean(dim=0, keepdim=True)  # (1,K)
             
-            # DOTA side: predict from mean feature
+            # Predict from mean feature
             dota_logits = dota_model.predict(image_features.mean(0).unsqueeze(0).half())  # (1,K)
             
             # Choose a smaller weight, so that model relies more on the original clip initially

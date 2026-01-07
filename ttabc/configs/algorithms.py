@@ -219,7 +219,7 @@ algorithm_defaults = {
         "sigma": 2e-3,
         "eta": 0.3,
         "rho": 0.02,
-        "init_mu": "constant",  # or "clip_text"
+        "init_mu": "clip_text",  # or "constant"
         "init_mu_value": 1e-3,
     },
 

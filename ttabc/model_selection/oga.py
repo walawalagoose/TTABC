@@ -245,7 +245,7 @@ class OGA(BaseMethod):
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
-            assert not isinstance(images, list), "OGA doesn't perform sample-wise adaptation (tpt=True)."
+            assert not isinstance(images, list), "OGA requires tpt=False."
             # images must be batch-wise
             images = images.cuda(self.args.gpu, non_blocking=True)
             image = images

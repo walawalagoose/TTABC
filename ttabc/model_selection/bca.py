@@ -1,11 +1,8 @@
 
 """
-Bayesian Class Adaptation (BCA)
-
-Official idea: Bayesian Test-Time Adaptation for Vision-Language Models (CVPR 2025).
-This TTABC integration is training-free (no backprop) and maintains:
-- class centers/prototypes mu (likelihood adaptation)
-- a cluster-to-class probability matrix P(Y|mu) (prior adaptation)
+    Bayesian Test-Time Adaptation for Vision-Language Models,
+    https://arxiv.org/abs/2503.09248,
+    https://github.com/buerzlh/Bayesian-Test-Time-Adaptation-for-Vision-Language-Models
 """
 
 import time
@@ -14,109 +11,74 @@ from dataclasses import dataclass
 import torch
 
 from ttabc.model_selection.base_method import BaseMethod
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, softmax_entropy
-
-
-@dataclass(frozen=True)
-class BCAConfig:
-    thr1: float = 0.05
-    init_count1: float = 20000.0
-    thr2: float = 0.65
-    init_count2: float = 1.0
-    tem: float = 100.0
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples
 
 
 class BCAState(torch.nn.Module):
-    def __init__(
-        self,
-        init_centers: torch.Tensor,  # (K,d), normalized
-        cfg: BCAConfig,
-    ):
-        super().__init__()
-        if init_centers.dim() != 2:
-            raise ValueError(f"init_centers must be (K,d), got {tuple(init_centers.shape)}")
-        K, d = init_centers.shape
-        self.K = int(K)
-        self.d = int(d)
-        self.cfg = cfg
-
-        # Use float32 for numerical stability (K up to 1000 in ImageNet).
-        self.register_buffer("mu", init_centers.to(dtype=torch.float32).clone())
-        self.register_buffer("cluster_to_class_prob", torch.eye(self.K, dtype=torch.float32, device=init_centers.device))
-
-        self.register_buffer("c1", torch.full((self.K,), float(cfg.init_count1), dtype=torch.float32, device=init_centers.device))
-        self.register_buffer("c2", torch.full((self.K,), float(cfg.init_count2), dtype=torch.float32, device=init_centers.device))
-
-    def _predict_probs(self, features: torch.Tensor) -> torch.Tensor:
-        # features: (N,d) normalized
-        # P(u|x) ~ softmax(tem * <x, mu>)
-        logits_um = float(self.cfg.tem) * (features @ self.mu.t())  # (N,K)
-        s1 = logits_um.softmax(dim=1)  # (N,K)
-        probs = s1 @ self.cluster_to_class_prob  # (N,K)
-        probs = probs / (probs.sum(dim=1, keepdim=True) + 1e-12)
-        return probs
-
+    def __init__(self, cfg, init_centers, tem=100.0):
+        super(BCAState, self).__init__()
+        self.mu = init_centers.clone()
+        self.M = self.mu.size(0)
+        self.cluster_to_class_prob = torch.eye(self.M).cuda()
+        
+        ## hyperparameters
+        self.threshold1 = cfg.threshold1
+        self.c1 = [cfg.init_count1] * self.M
+        self.threshold2 = cfg.threshold2
+        self.c2 = [cfg.init_count2] * self.M
+        self.tem = tem
+        self.selection_p = cfg.selection_p
+    
     @torch.no_grad()
-    def step(self, features: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Online prediction + conditional updates.
-        Returns:
-          - probs: (N,K)
-          - pred:  (N,)
-        """
-        if features.dim() != 2 or features.size(1) != self.d:
-            raise ValueError(f"features must be (N,{self.d}), got {tuple(features.shape)}")
-
-        probs = self._predict_probs(features)  # (N,K)
-        prob_max, pred = probs.max(dim=1)  # (N,), (N,)
-
-        for i in range(features.size(0)):
-            k = int(pred[i].item())
-
-            if prob_max[i] > float(self.cfg.thr1):
-                # mu_k <- (c1*mu_k + x) / (c1+1), then normalize
-                self.mu[k] = (self.c1[k] * self.mu[k] + features[i]) / (self.c1[k] + 1.0)
-                self.c1[k] = self.c1[k] + 1.0
-                self.mu[k] = self.mu[k] / (self.mu[k].norm() + 1e-12)
-
-            if prob_max[i] > float(self.cfg.thr2):
-                # P(Y|mu_k) <- (c2*old + probs_i) / (c2+1)
-                self.cluster_to_class_prob[k] = (
-                    self.c2[k] * self.cluster_to_class_prob[k] + probs[i]
-                ) / (self.c2[k] + 1.0)
-                self.c2[k] = self.c2[k] + 1.0
-                self.cluster_to_class_prob[k] = self.cluster_to_class_prob[k] / (
-                    self.cluster_to_class_prob[k].sum() + 1e-12
-                )
-
-        return probs, pred
+    def bca_step(self, image_features):
+        '''One step of BCA adaptation'''
+        # assign labels
+        output, image_features = self.assign_label(image_features)
+        prob_max, pred = torch.max(output, dim=1)
+        
+        # update model
+        if prob_max > self.threshold1:
+            self.update_centers(image_features, pred)
+        if prob_max > self.threshold2:
+            self.update_prior(output, pred)
+        return output
+    
+    def assign_label(self, image_features):
+        # calculate P(x|u_m)
+        P_x_um = self.tem * image_features @ self.mu.t()
+        if image_features.size(0) > 1:
+            output, selected_idx = select_confident_samples(P_x_um, self.selection_p)
+            image_features = image_features[selected_idx].mean(0).unsqueeze(0)
+            P_x_um = output.mean(0).unsqueeze(0)
+        
+        ## calculate P(u_m|x_i) =  P(x|u_m)/P(x)
+        s1 = P_x_um.softmax(dim=1)
+        ## calculate (P(x|u_m)/P(x))*P(Y|u_m)
+        f1 = s1 @ self.cluster_to_class_prob
+        return f1, image_features
+    
+    def update_prior(self, soft_prob, pred):
+        self.cluster_to_class_prob[pred] = (self.c2[pred]*self.cluster_to_class_prob[pred] + soft_prob)/(self.c2[pred]+1)
+        self.c2[pred] = self.c2[pred] + 1
+    
+    def update_centers(self, image_feature, pred):
+        self.mu[pred] = self.c1[pred] * self.mu[pred] + image_feature
+        self.c1[pred] = self.c1[pred] + 1
+        self.mu[pred] = self.mu[pred] / self.c1[pred]
+        self.mu[pred] = self.mu[pred] / torch.norm(self.mu[pred])
 
 
 class BCA(BaseMethod):
-    """
-    Training-free BCA in TTABC's method interface.
-
-    NOTE: This method requires access to image features, so it currently supports prompt_type=no_prompt.
-    """
-
     def __init__(self, args):
         super().__init__(args)
         self.args = args
-
-        default_cfg = BCAConfig()
-        user_cfg = getattr(args, "bca_config", None) or {}
-        self.bca_config = BCAConfig(**{**default_cfg.__dict__, **user_cfg})
 
     def test_time_tuning(self, inputs):
         # BCA performs no parameter updates
         return None
 
-    def _get_text_features(self) -> torch.Tensor:
-        if hasattr(self.model, "get_text_features"):
-            return self.model.get_text_features()
-        if hasattr(self.model, "text_features"):
-            return self.model.text_features
-        raise AttributeError("Current CLIP wrapper does not expose text features; use prompt_type=no_prompt.")
+    def get_text_features(self) -> torch.Tensor:
+        return self.model.get_text_features()
 
     def test_time_adapt_eval(self, val_loader, result_dict=None):
         batch_time = AverageMeter("Time", ":6.3f", Summary.NONE)
@@ -128,12 +90,12 @@ class BCA(BaseMethod):
         with torch.no_grad():
             self.model.reset()
 
-        # (re-)init per dataset (classnames may change via reset_classnames())
-        with torch.no_grad():
-            text_features = self._get_text_features().to(torch.float32)  # (K,d), normalized
-        bca_state = BCAState(text_features, self.bca_config).cuda(self.args.gpu)
-
         end = time.time()
+        
+        # Initialize BCA model
+        with torch.no_grad():
+            text_features = self.get_text_features()
+        bca_model = BCAState(self.args, text_features, tem=self.model.logit_scale.exp()).cuda(self.args.gpu)
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -141,65 +103,37 @@ class BCA(BaseMethod):
             if isinstance(images, list):
                 for k in range(len(images)):
                     images[k] = images[k].cuda(self.args.gpu, non_blocking=True)
-                if getattr(self.args, "tpt", False):
-                    images_in = torch.cat(images, dim=0)  # (V,C,H,W)
-                else:
-                    images_in = images[0]
-                meter_image = images[0]
+                image = images[0]
+                images = torch.cat(images, dim=0)
             else:
-                if len(images.size()) > 4:
-                    assert images.size()[0] == 1
-                    images = images.squeeze(0)
-                images_in = images.cuda(self.args.gpu, non_blocking=True)
-                meter_image = images_in
-
+                images = images.cuda(self.args.gpu, non_blocking=True)
+                image = images
             target = target.cuda(self.args.gpu, non_blocking=True)
-
+        
             with torch.no_grad():
                 with torch.amp.autocast(device_type="cuda"):
-                    logits, feats = self.model(images_in)  # (N,K), (N,d)
-
-            # For multi-view inference, select low-entropy views (as in official BCA)
-            if feats.size(0) > 1 and getattr(self.args, "tpt", False):
-                logits_um = float(bca_state.cfg.tem) * (feats.to(torch.float32) @ bca_state.mu.t())  # (V,K)
-                view_entropy = softmax_entropy(logits_um)
-                k = max(1, int(view_entropy.size(0) * float(getattr(self.args, "selection_p", 0.1))))
-                selected_idx = torch.argsort(view_entropy, descending=False)[:k]
-                feats = feats[selected_idx].mean(0, keepdim=True)
-
-            # Online update (streaming). If batch dimension > 1, process sequentially.
-            feats = feats.to(torch.float32)
-            feats = feats / (feats.norm(dim=1, keepdim=True) + 1e-12)
-
-            if feats.size(0) == 1:
-                probs, pred = bca_state.step(feats)
-                out_logits = (probs + 1e-12).log()
-            else:
-                all_probs = []
-                all_pred = []
-                for j in range(feats.size(0)):
-                    probs_j, pred_j = bca_state.step(feats[j : j + 1])
-                    all_probs.append(probs_j)
-                    all_pred.append(pred_j)
-                probs = torch.cat(all_probs, dim=0)
-                pred = torch.cat(all_pred, dim=0)
-                out_logits = (probs + 1e-12).log()
+                    _, image_features = self.model(images)  # (N,K), (N,d)
+            
+            # BCA Steps
+            z = bca_model.bca_step(image_features)
+            output = torch.log(z + 1e-12)
 
             if result_dict is not None:
-                max_confidence, max_index = probs.max(dim=1)
-                if probs.size(0) == 1:
-                    result_dict["max_confidence"].append(float(max_confidence.item()))
-                    result_dict["prediction"].append(int(max_index.item()))
-                    result_dict["label"].append(int(target.view(-1)[0].item()))
+                softmax_output = z
+                max_confidence, max_index = torch.max(softmax_output, dim=1)
+                if max_confidence.numel() == 1:
+                    result_dict['max_confidence'].append(max_confidence.item())
+                    result_dict['prediction'].append(max_index.item())
+                    result_dict['label'].append(target.item())
                 else:
-                    for j in range(probs.size(0)):
-                        result_dict["max_confidence"].append(float(max_confidence[j].item()))
-                        result_dict["prediction"].append(int(max_index[j].item()))
-                        result_dict["label"].append(int(target.view(-1)[j].item()))
+                    for j in range(max_confidence.size(0)):
+                        result_dict['max_confidence'].append(max_confidence[j].item())
+                        result_dict['prediction'].append(max_index[j].item())
+                        result_dict['label'].append(target[j].item())
 
-            acc1, acc5 = accuracy(out_logits, target, topk=(1, 5))
-            top1.update(acc1[0], meter_image.size(0))
-            top5.update(acc5[0], meter_image.size(0))
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            top1.update(acc1[0], image.size(0))
+            top5.update(acc5[0], image.size(0))
 
             batch_time.update(time.time() - end)
             end = time.time()
