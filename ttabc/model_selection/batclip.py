@@ -122,13 +122,11 @@ class BATCLIP(BaseMethod):
             if result_dict is not None:
                 softmax_output = softmax(output)
                 max_confidence, max_index = torch.max(softmax_output, 1)
-                if self.args.tpt:
-                    # sample-wise
+                if max_confidence.numel() == 1:
                     result_dict['max_confidence'].append(max_confidence.item())
                     result_dict['prediction'].append(max_index.item())
                     result_dict['label'].append(target.item())
                 else:
-                    # batch-wise
                     for j in range(max_confidence.size(0)):
                         result_dict['max_confidence'].append(max_confidence[j].item())
                         result_dict['prediction'].append(max_index[j].item())

@@ -280,11 +280,15 @@ class OGA(BaseMethod):
             if result_dict is not None:
                 softmax_output = z
                 max_confidence, max_index = torch.max(softmax_output, dim=1)
-                # batch-wise
-                for j in range(max_confidence.size(0)):
-                    result_dict['max_confidence'].append(max_confidence[j].item())
-                    result_dict['prediction'].append(max_index[j].item())
-                    result_dict['label'].append(target[j].item())
+                if max_confidence.numel() == 1:
+                    result_dict['max_confidence'].append(max_confidence.item())
+                    result_dict['prediction'].append(max_index.item())
+                    result_dict['label'].append(target.item())
+                else:
+                    for j in range(max_confidence.size(0)):
+                        result_dict['max_confidence'].append(max_confidence[j].item())
+                        result_dict['prediction'].append(max_index[j].item())
+                        result_dict['label'].append(target[j].item())
 
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
             top1.update(acc1[0], image.size(0))

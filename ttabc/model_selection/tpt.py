@@ -128,9 +128,15 @@ class TPT(BaseMethod):
                 max_confidence, max_index = torch.max(softmax_output, 1)
 
                 #save the max confidence, prediction, and label to the result_dict
-                result_dict['max_confidence'].append(max_confidence.item())
-                result_dict['prediction'].append(max_index.item())
-                result_dict['label'].append(target.item())
+                if max_confidence.numel() == 1:
+                    result_dict['max_confidence'].append(max_confidence.item())
+                    result_dict['prediction'].append(max_index.item())
+                    result_dict['label'].append(target.item())
+                else:
+                    for j in range(max_confidence.size(0)):
+                        result_dict['max_confidence'].append(max_confidence[j].item())
+                        result_dict['prediction'].append(max_index[j].item())
+                        result_dict['label'].append(target[j].item())
 
             # measure accuracy and record loss
             acc1, acc5 = accuracy(output, target, topk=(1, 5))

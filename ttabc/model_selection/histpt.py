@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, SoftTargetCrossEntropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, SoftTargetCrossEntropy, select_confident_samples
 from ttabc.model_selection.base_method import BaseMethod
 
 
@@ -303,13 +303,18 @@ class HisTPT(BaseMethod):
                 # 2. Generate pseudo-labels using original images
                 pseudo_labels, _ = self.generate_pseudo_labels(images_ori, soft=self.soft)  # [B]
                 
-                # 3. Expand pseudo-labels to match augmented images batch size
-                # 4. Compute loss (cross-entropy with pseudo-labels)
+                # 3. Filter sample with entropy selection
+                selected_idx = torch.arange(logits_aug.size(0))
+                if self.args.tpt:
+                    logits_aug, selected_idx = select_confident_samples(logits_aug, self.args.selection_p)
+                
+                # 4. Expand pseudo-labels to match augmented images batch size
+                # 5. Compute loss (cross-entropy with pseudo-labels)
                 if self.soft:  # [num_views*B, K]
-                    pseudo_labels = pseudo_labels.repeat(num_views, 1)
+                    pseudo_labels = pseudo_labels.repeat(num_views, 1)[selected_idx]
                     loss = self.loss_fn(logits_aug, pseudo_labels)
                 else:  # [num_views*B]
-                    pseudo_labels = pseudo_labels.repeat(num_views)
+                    pseudo_labels = pseudo_labels.repeat(num_views)[selected_idx]
                     loss = F.cross_entropy(logits_aug, pseudo_labels)
                 
             # 5. Optimization step
@@ -321,7 +326,7 @@ class HisTPT(BaseMethod):
         # === AFTER tuning: update memory once ===
         with torch.no_grad():    
             # 1. Compute entropy of current sample
-            # TODO: take average entropy over augmentations, with entropy selection?
+            # TODO: take average entropy over augmentations?
             entropy = self.compute_entropy(logits_aug).mean()
             # entropy = self.compute_entropy(logits_aug)[0]
             
@@ -410,10 +415,10 @@ class HisTPT(BaseMethod):
                     result_dict['prediction'].append(max_index.item())
                     result_dict['label'].append(target.item())
                 else:
-                    for idx in range(max_confidence.size(0)):
-                        result_dict['max_confidence'].append(max_confidence[idx].item())
-                        result_dict['prediction'].append(max_index[idx].item())
-                        result_dict['label'].append(target[idx].item())
+                    for j in range(max_confidence.size(0)):
+                        result_dict['max_confidence'].append(max_confidence[j].item())
+                        result_dict['prediction'].append(max_index[j].item())
+                        result_dict['label'].append(target[j].item())
 
             # Measure accuracy
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
