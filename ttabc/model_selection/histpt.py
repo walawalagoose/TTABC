@@ -284,7 +284,7 @@ class HisTPT(BaseMethod):
         
         return pseudo_labels, confidence
     
-    def test_time_tuning(self, images_aug, images_ori):
+    def test_time_tuning(self, inputs):
         """
         HisTPT test-time tuning
         
@@ -292,7 +292,9 @@ class HisTPT(BaseMethod):
             images_aug: augmented images (for training) - shape [B*num_aug, C, H, W]
             images_ori: original images (for generating pseudo-labels) - shape [B, C, H, W]
         """
-        num_views = images_aug.size(0) // images_ori.size(0)  # = len(images) when list mode
+        num_views = inputs.size(0)
+        images_aug = inputs
+        images_ori = inputs[0].unsqueeze(0)
                 
         for j in range(self.args.tta_steps):
             # === Tuning ===
@@ -328,7 +330,6 @@ class HisTPT(BaseMethod):
             # 1. Compute entropy of current sample
             # TODO: take average entropy over augmentations?
             entropy = self.compute_entropy(logits_aug).mean()
-            # entropy = self.compute_entropy(logits_aug)[0]
             
             # 2. Update historical memory
             current_text_features = self.model.get_text_features()
@@ -377,16 +378,12 @@ class HisTPT(BaseMethod):
                 # TPT mode: images is a list of augmented images
                 for k in range(len(images)):
                     images[k] = images[k].cuda(self.args.gpu, non_blocking=True)
-                image_ori = images[0]  # Original image
-                images_aug = torch.cat(images, dim=0)  # Augmented images
+                image = images[0]  # Original image
+                images = torch.cat(images, dim=0)  # Augmented images
             else:
-                if len(images.size()) > 4:
-                    assert images.size()[0] == 1
-                    images = images.squeeze(0)
                 images = images.cuda(self.args.gpu, non_blocking=True)
-                image_ori = images
-                images_aug = images
-            
+                image = images
+                
             target = target.cuda(self.args.gpu, non_blocking=True)
 
             # Test-time tuning
@@ -398,12 +395,12 @@ class HisTPT(BaseMethod):
                 # self.optimizer.load_state_dict(self.optim_state)
                 
                 # Perform tuning
-                self.test_time_tuning(images_aug, image_ori)
+                self.test_time_tuning(images)
 
             # Inference
             with torch.no_grad():
                 with torch.amp.autocast(device_type='cuda'):
-                    output = self.model(image_ori)
+                    output = self.model(image)
 
             # Save results for ECE calculation
             if result_dict is not None:
@@ -422,8 +419,8 @@ class HisTPT(BaseMethod):
 
             # Measure accuracy
             acc1, acc5 = accuracy(output, target, topk=(1, 5))
-            top1.update(acc1[0], image_ori.size(0))
-            top5.update(acc5[0], image_ori.size(0))
+            top1.update(acc1[0], image.size(0))
+            top5.update(acc5[0], image.size(0))
 
             # Measure elapsed time
             batch_time.update(time.time() - end)

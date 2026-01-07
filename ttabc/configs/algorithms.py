@@ -162,6 +162,7 @@ algorithm_defaults = {
         "prompt_type": 'coop',
         "supported_list": ['coop'],
         "load": None,
+        "selection_p": 0.1,
         "optimizer": "SGD",
         "batch_size": 1,
         "n_ctx": 4,
@@ -187,12 +188,45 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": "no_prompt",
         "supported_list": ["no_prompt"],
-        "batch_size": 64,
+        "batch_size": 1,
         "shot_capacity": 8,
         "tau": 0.05,
         "sig_type": "RidgeMoorePenrose",
         "normalize_mu": False,
     },
     
+    "bca": {
+        "tpt": True,
+        "batch_size": 64, 
+
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "load": None,
+        "selection_p": 0.1,
+
+        "bca_config": {
+            "thr1": 0.05,
+            "init_count1": 20000,
+            "thr2": 0.65,
+            "init_count2": 1,
+            "tem": 100.0,
+        },
+    },
+    
+    "dota": {
+        "tpt": True, 
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "batch_size": 64,  
+        "selection_p": 0.1,
+        
+        "epsilon": 1e-4,
+        "sigma": 2e-3,
+        "eta": 0.3,
+        "rho": 0.02,
+        "init_mu": "constant",  # or "clip_text"
+        "init_mu_value": 1e-3,
+    },
+
     
 }

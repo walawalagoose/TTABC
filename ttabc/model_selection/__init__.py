@@ -12,6 +12,8 @@ from .batclip import BATCLIP
 # from .dmn import DMN
 from .histpt import HisTPT
 from .oga import OGA
+from .bca import BCA
+from .dota import DOTA
 
 
 def get_method(method_name):
@@ -29,6 +31,8 @@ def get_method(method_name):
         # 'dmn': DMN,
         'histpt': HisTPT,
         'oga': OGA,
+        'bca': BCA,
+        'dota': DOTA,
     }
     
     if method_name not in method_dict:
