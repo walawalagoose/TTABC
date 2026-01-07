@@ -1,11 +1,7 @@
 """
-DOTA (as in this repo's `DOTA/dota_gda_em_aug.py`) integrated into TTABC.
-
-Key characteristics of the original implementation:
-- training-free, online (streaming) updates
-- uses multi-view augmentations; selects low-entropy views
-- updates class-wise Gaussian statistics with soft pseudo-labels (from CLIP)
-- fuses CLIP logits with DOTA's GDA logits
+    DOTA: Distributional Test-Time Adaptation of Vision-Language Models,
+    https://arxiv.org/abs/2409.19375,
+    https://github.com/skylineeeeen/DOTA
 """
 
 import time
@@ -105,8 +101,18 @@ class DOTA(BaseMethod):
         with torch.no_grad():
             self.model.reset()
 
-        softmax = torch.nn.Softmax(dim=1)
         end = time.time()
+        
+        # Initialize DOTA model
+        with torch.no_grad():
+            text_features = self.get_text_features()
+        K, d = int(text_features.size(0)), int(text_features.size(1))
+        if self.args.init_mu == "clip_text":
+            mu_init = text_features
+        else:
+            mu_init = torch.full((d, K), float(self.args.init_mu_value))
+        dota_model = DOTAState(self.args, d, K, clip_weights=mu_init).cuda(self.args.gpu)
+        dota_model.update()
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -133,16 +139,6 @@ class DOTA(BaseMethod):
                 image_features = image_features[selected_idx]
                 prob_map = prob_map[selected_idx]
 
-            # Initialize DOTA model
-            text_features = self.get_text_features()
-            K, d = int(text_features.size(0)), int(text_features.size(1))
-            if self.args.init_mu == "clip_text":
-                mu_init = text_features
-            else:
-                mu_init = torch.full((d, K), float(self.args.init_mu_value))
-            dota_model = DOTAState(self.args, d, K, clip_weights=mu_init).cuda(self.args.gpu)
-            dota_model.update()
-
             # CLIP side: average logits over selected views
             clip_logits = clip_logits.mean(dim=0, keepdim=True)  # (1,K)
             
@@ -160,7 +156,7 @@ class DOTA(BaseMethod):
             dota_model.update() # Inverse covariance matrix
 
             if result_dict is not None:
-                softmax_output = softmax(output)
+                softmax_output = output.softmax(dim=1)
                 max_confidence, max_index = torch.max(softmax_output, dim=1)
                 if max_confidence.numel() == 1:
                     result_dict['max_confidence'].append(max_confidence.item())

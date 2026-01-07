@@ -60,9 +60,6 @@ class ZERO(BaseMethod):
         # There is no need to reset the model
         self.model.eval()
         end = time.time()
-        
-        #define a softmax layer
-        softmax = torch.nn.Softmax(dim=1)
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -105,7 +102,7 @@ class ZERO(BaseMethod):
             output = p_bar.unsqueeze(0)
             
             if result_dict is not None:
-                softmax_output = softmax(output)
+                softmax_output = output.softmax(dim=1)
                 
                 #maximum confidence of the softmax_output and its index
                 max_confidence, max_index = torch.max(softmax_output, 1)

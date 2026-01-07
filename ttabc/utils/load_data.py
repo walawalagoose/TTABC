@@ -43,7 +43,7 @@ def create_dataloader(args, set_id):
         else:
             data_transform = AugMixAugmenter(base_transform, preprocess, n_views=args.batch_size-1, 
                                         augmix=len(set_id)>1)
-        batchsize = 1
+        real_batch_size = 1
     else:
         data_transform = transforms.Compose([
             transforms.Resize(args.resolution, interpolation=BICUBIC),
@@ -51,7 +51,7 @@ def create_dataloader(args, set_id):
             transforms.ToTensor(),
             normalize,
         ])
-        batchsize = args.batch_size
+        real_batch_size = args.batch_size
 
     print("evaluating: {}".format(set_id))
     # reset the model
@@ -103,7 +103,7 @@ def create_dataloader(args, set_id):
         # Create DataLoader
         val_loader = torch.utils.data.DataLoader(
             val_dataset,
-            batch_size=batchsize,
+            batch_size=real_batch_size,
             sampler=sampler,  # Use custom sampler
             num_workers=args.workers,
             pin_memory=True
@@ -112,7 +112,7 @@ def create_dataloader(args, set_id):
         print("number of test samples: {}".format(len(val_dataset)))
         val_loader = torch.utils.data.DataLoader(
                     val_dataset,
-                    batch_size=batchsize, shuffle=True,
+                    batch_size=real_batch_size, shuffle=True,
                     num_workers=args.workers, pin_memory=True)
     
     return val_dataset, val_loader, classnames

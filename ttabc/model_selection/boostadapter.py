@@ -12,7 +12,7 @@ import torch.nn.functional as F
 from PIL import Image
 import copy
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, select_confident_samples
 from ttabc.model_selection.base_method import BaseMethod
 
 def get_entropy_tda(loss, n_classes):
@@ -125,9 +125,7 @@ class BoostAdapter(BaseMethod):
                     loss = softmax_entropy(clip_logits[:1])
                     return image_features[:1], clip_logits[:1], loss, prob_map, pred, ori_feat, ori_output
                 else:
-                    batch_entropy = softmax_entropy(clip_logits)
-                    selected_idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * 0.1)]
-                    output = clip_logits[selected_idx]
+                    output, selected_idx = select_confident_samples(clip_logits, self.args.selection_p)
                     image_features = image_features[selected_idx].mean(0).unsqueeze(0)
                     clip_logits = output.mean(0).unsqueeze(0)
 
@@ -156,9 +154,6 @@ class BoostAdapter(BaseMethod):
         # There is no need to reset the model
         self.model.eval()
         end = time.time()
-        
-        #define a softmax layer
-        softmax = torch.nn.Softmax(dim=1)
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -232,9 +227,11 @@ class BoostAdapter(BaseMethod):
                      self.neg_config['mask_threshold']['upper'])
                 )
                 final_logits -= neg_logits
-
+                
+            output = final_logits
+            
             if result_dict is not None:
-                softmax_output = softmax(final_logits)
+                softmax_output = output.softmax(dim=1)
                 
                 #maximum confidence of the softmax_output and its index
                 max_confidence, max_index = torch.max(softmax_output, 1)

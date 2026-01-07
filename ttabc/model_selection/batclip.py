@@ -88,9 +88,6 @@ class BATCLIP(BaseMethod):
             [batch_time, top1, top5],
             prefix='Test: ')
         
-        # Define a softmax layer
-        softmax = torch.nn.Softmax(dim=1)
-        
         end = time.time()
     
         for i, (images, target) in enumerate(val_loader):
@@ -120,7 +117,7 @@ class BATCLIP(BaseMethod):
                     output = self.model(image)
 
             if result_dict is not None:
-                softmax_output = softmax(output)
+                softmax_output = output.softmax(dim=1)
                 max_confidence, max_index = torch.max(softmax_output, 1)
                 if max_confidence.numel() == 1:
                     result_dict['max_confidence'].append(max_confidence.item())

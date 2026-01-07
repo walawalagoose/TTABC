@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     Online Gaussian Adaptation of Vision-Language Models,
     https://arxiv.org/abs/2501.04352,
@@ -8,7 +7,7 @@
 import time
 import torch
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, softmax_entropy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy
 from ttabc.model_selection.base_method import BaseMethod
 
 
@@ -235,16 +234,14 @@ class OGA(BaseMethod):
         self.model.eval()
         end = time.time()
 
-        # (re-)init per dataset (classnames may change via reset_classnames())
+        # Initialize OGA model
         with torch.no_grad():
-            text_features = self.get_text_features().to(torch.float32)  # (K,d), normalized
+            text_features = self.get_text_features()
         oga_model = GaussAdapt(
             text_features,
             shot_capacity=int(self.args.shot_capacity),
             sig_type=str(self.args.sig_type),
         ).cuda(self.args.gpu)
-        
-        softmax = torch.nn.Softmax(dim=1)
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None

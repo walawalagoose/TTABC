@@ -197,20 +197,15 @@ algorithm_defaults = {
     
     "bca": {
         "tpt": True,
-        "batch_size": 64, 
-
         "prompt_type": "no_prompt",
         "supported_list": ["no_prompt"],
-        "load": None,
+        "batch_size": 64, 
         "selection_p": 0.1,
 
-        "bca_config": {
-            "thr1": 0.05,
-            "init_count1": 20000,
-            "thr2": 0.65,
-            "init_count2": 1,
-            "tem": 100.0,
-        },
+        "threshold1": 0.05,
+        "init_count1": 20000,
+        "threshold2": 0.65,
+        "init_count2": 1,
     },
     
     "dota": {

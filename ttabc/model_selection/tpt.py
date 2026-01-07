@@ -17,8 +17,7 @@ from ttabc.model_selection.base_method import BaseMethod
 class TPT(BaseMethod):
     def __init__(self, args):
         super().__init__(args)
-        self.args = args
-        self.temperature_value = {'ViT': 1.16, 'RN': 1.15} #for temperature scaling experiments 
+        self.args = args 
 
     def test_time_tuning(self, inputs):
         if self.args.prompt_type == 'cocoop':
@@ -69,9 +68,6 @@ class TPT(BaseMethod):
             with torch.no_grad():
                 self.model.reset()
         end = time.time()
-
-        #define a softmax layer
-        softmax = torch.nn.Softmax(dim=1)
     
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -122,7 +118,7 @@ class TPT(BaseMethod):
 
 
             if result_dict is not None:
-                softmax_output = softmax(output) 
+                softmax_output = output.softmax(dim=1)
 
                 #maximum confidence of the softmax_output and its index
                 max_confidence, max_index = torch.max(softmax_output, 1)

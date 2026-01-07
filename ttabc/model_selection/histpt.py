@@ -368,7 +368,6 @@ class HisTPT(BaseMethod):
         self.historical_memory.reset()
         
         end = time.time()
-        softmax = torch.nn.Softmax(dim=1)
     
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -404,7 +403,7 @@ class HisTPT(BaseMethod):
 
             # Save results for ECE calculation
             if result_dict is not None:
-                softmax_output = softmax(output)
+                softmax_output = output.softmax(dim=1)
                 max_confidence, max_index = torch.max(softmax_output, 1)
                 
                 if max_confidence.numel() == 1:

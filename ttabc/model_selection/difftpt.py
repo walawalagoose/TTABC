@@ -2,7 +2,7 @@
     Diverse Data Augmentation with Diffusions for Effective Test-time Prompt Tuning,
     https://arxiv.org/abs/2308.06038,
     https://github.com/chunmeifeng/DiffTPT
-    NOTE: This implementation computes the diffusion augmentations on-the-fly, which is extremely slow and requires a large amount of CUDA memory. We'll release a more efficient, offline-augmentation version in the future.
+    NOTE: This implementation computes the diffusion augmentations on-the-fly, which is extremely slow and requires a large amount of CUDA memory.
 """
 import time
 
@@ -11,6 +11,11 @@ from PIL import Image
 import torch
 import torch.optim
 
+try:
+    from torchvision.transforms import InterpolationMode
+    BICUBIC = InterpolationMode.BICUBIC
+except ImportError:
+    BICUBIC = Image.BICUBIC
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples, marginal_entropy, select_confident_samples_cosine
 from ttabc.model_selection.base_method import BaseMethod
 import torchvision.transforms as T
@@ -36,8 +41,7 @@ class DiffTPT(BaseMethod):
     def __init__(self, args):
         super().__init__(args)
         assert args.tpt is True, "DiffTPT only works with augmentations"
-        self.args = args
-        self.temperature_value = {'ViT': 1.16, 'RN': 1.15} #for temperature scaling experiments 
+        self.args = args 
         
         # load diffusion pipeline
         self.diff_pipe = None
@@ -150,9 +154,6 @@ class DiffTPT(BaseMethod):
             with torch.no_grad():
                 self.model.reset()
         end = time.time()
-
-        #define a softmax layer
-        softmax = torch.nn.Softmax(dim=1)
     
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
@@ -200,7 +201,7 @@ class DiffTPT(BaseMethod):
 
 
             if result_dict is not None:
-                softmax_output = softmax(output) 
+                softmax_output = output.softmax(dim=1)
 
                 #maximum confidence of the softmax_output and its index
                 max_confidence, max_index = torch.max(softmax_output, 1)

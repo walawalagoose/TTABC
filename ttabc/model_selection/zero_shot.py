@@ -45,9 +45,6 @@ class ZEROSHOT(BaseMethod):
 
         # Set model to evaluation mode
         self.model.eval()
-        
-        # Define softmax layer for confidence calculation
-        softmax = torch.nn.Softmax(dim=1)
 
         end = time.time()
         
@@ -74,11 +71,11 @@ class ZEROSHOT(BaseMethod):
             with torch.amp.autocast(device_type='cuda'):
                 output, _ = self.model(image)
             
-            # Calculate softmax for confidence
-            softmax_output = softmax(output)
-            
             # Save results if result_dict is provided (for ECE calculation)
             if result_dict is not None:
+                # Calculate softmax for confidence
+                softmax_output = output.softmax(dim=1)
+                
                 max_confidence, max_index = torch.max(softmax_output, 1)
                 
                 if max_confidence.numel() == 1:

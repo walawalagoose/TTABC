@@ -7,6 +7,7 @@
 /logs/
 /checkpoints/
 /.vscode/
+**/*.pt
 
 # your own scripts, pull once and never track again
 test_ds_example.sh
