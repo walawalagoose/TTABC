@@ -29,7 +29,7 @@ from clip.maple import get_maple
 from clip.visual_prompting import get_visual_prompt_clip
 from data.imagnet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, load_model_weight
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, load_model_weight, build_optimizer
 from data.cls_to_names import *
 from data.fewshot_datasets import fewshot_datasets
 from data.imagenet_variants import thousand_k_to_200, imagenet_a_mask, imagenet_r_mask, imagenet_v_mask
@@ -144,21 +144,6 @@ def create_model(args):
     return model, model_state
 
 def set_optimizer(args, model):
-    
-    def _build_optimizer(args, params):
-        opt_name = getattr(args, "optimizer", "Adam").lower()
-        lr = getattr(args, "lr", 1e-4)
-        wd = getattr(args, "weight_decay", 1e-4)
-        if opt_name == "sgd":
-            momentum = getattr(args, "momentum", 0.9)
-            return torch.optim.SGD(params, lr=lr, momentum=momentum, weight_decay=wd)
-        elif opt_name == "adam":
-            betas = getattr(args, "betas", (0.9, 0.999))
-            return torch.optim.Adam(params, lr=lr, weight_decay=wd, betas=betas)
-        else:  # adamw
-            betas = getattr(args, "betas", (0.9, 0.999))
-            return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
-        
     if args.prompt_type in ['no_prompt', None]:
         optimizer = None
         optim_state = None
@@ -171,7 +156,7 @@ def set_optimizer(args, model):
     elif args.prompt_type == 'coop':
         trainable_param = model.prompt_learner.parameters()
         # optimizer = torch.optim.AdamW(trainable_param, args.lr)
-        optimizer = _build_optimizer(args, trainable_param)
+        optimizer = build_optimizer(args, trainable_param)
         optim_state = deepcopy(optimizer.state_dict())
         
     elif args.prompt_type == 'cocoop': # set dynamiclly during adaptation
@@ -181,12 +166,12 @@ def set_optimizer(args, model):
         
     elif args.prompt_type == 'vp':
         trainable_param = model.get_trainable_parameters()
-        optimizer = _build_optimizer(args, trainable_param)
+        optimizer = build_optimizer(args, trainable_param)
         optim_state = deepcopy(optimizer.state_dict())
         
     elif args.prompt_type == 'maple':
         trainable_param = filter(lambda p: p.requires_grad, model.parameters())
-        optimizer = _build_optimizer(args, trainable_param)
+        optimizer = build_optimizer(args, trainable_param)
         optim_state = optimizer.state_dict()
     
     return optimizer, optim_state

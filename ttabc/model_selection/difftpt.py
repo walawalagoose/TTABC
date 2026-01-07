@@ -174,9 +174,10 @@ class DiffTPT(BaseMethod):
 
             # reset the tunable prompt to its initial state
             if self.args.prompt_type != 'cocoop': # no need to reset cocoop because it's fixed
-                if self.args.tta_steps > 0 and self.args.episodic:
-                    with torch.no_grad():
-                        self.model.reset()
+                if self.args.tta_steps > 0:
+                    if self.args.episodic:
+                        with torch.no_grad():
+                            self.reset()
                 self.optimizer.load_state_dict(self.optim_state)
 
                 self.test_time_tuning(images)

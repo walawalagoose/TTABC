@@ -25,6 +25,20 @@ class Summary(Enum):
     SUM = 2
     COUNT = 3
 
+def build_optimizer(args, params):
+    opt_name = getattr(args, "optimizer", "Adam").lower()
+    lr = getattr(args, "lr", 1e-4)
+    wd = getattr(args, "weight_decay", 1e-4)
+    if opt_name == "sgd":
+        momentum = getattr(args, "momentum", 0.9)
+        return torch.optim.SGD(params, lr=lr, momentum=momentum, weight_decay=wd)
+    elif opt_name == "adam":
+        betas = getattr(args, "betas", (0.9, 0.999))
+        return torch.optim.Adam(params, lr=lr, weight_decay=wd, betas=betas)
+    else:  # adamw
+        betas = getattr(args, "betas", (0.9, 0.999))
+        return torch.optim.AdamW(params, lr=lr, weight_decay=wd, betas=betas)
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f', summary_type=Summary.AVERAGE):
