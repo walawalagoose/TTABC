@@ -96,6 +96,7 @@ if __name__ == '__main__':
     parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt', 'oga', 'dota', 'bca'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=True, help='run test-time prompt tuning')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
+    parser.add_argument('--episodic', action='store_true', default=True, help='whether to reset model after each sample/batch')
     # prompting config
     parser.add_argument('--vp_type' , type=str, default='lor_vp', choices=['pad_vp', 'resized_pad_vp', 'patch_vp', 'random_patch_vp', 'lor_vp'], help='type of visual prompt')
     parser.add_argument('--vp_mode' , type=str, default='zs', choices=['zs', 'coop', 'cocoop'], help='multimodal prompt for visual prompt')

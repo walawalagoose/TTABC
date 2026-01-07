@@ -28,7 +28,7 @@ class DOTAState(torch.nn.Module):
         self.num_classes = num_classes
         self.streaming_update_Sigma = streaming_update_Sigma
         self.epsilon = cfg.epsilon
-        self.mu = clip_weights.T.to(self.device)  # initialize mu with clip_weights
+        self.mu = clip_weights.to(self.device)  # initialize mu with clip_weights
         self.c = torch.ones(num_classes, dtype=torch.float32).to(self.device)
         self.Sigma = cfg.sigma * torch.eye(input_dim, dtype=torch.float32).repeat(num_classes, 1, 1).to(self.device)
         self.overall_Sigma = torch.mean(self.Sigma, dim=0)
@@ -98,9 +98,6 @@ class DOTA(BaseMethod):
         progress = ProgressMeter(len(val_loader), [batch_time, top1, top5], prefix="Test: ")
 
         self.model.eval()
-        with torch.no_grad():
-            self.model.reset()
-
         end = time.time()
         
         # Initialize DOTA model
@@ -110,7 +107,7 @@ class DOTA(BaseMethod):
         if self.args.init_mu == "clip_text":
             mu_init = text_features
         else:
-            mu_init = torch.full((d, K), float(self.args.init_mu_value))
+            mu_init = torch.full((K, d), float(self.args.init_mu_value))
         dota_model = DOTAState(self.args, d, K, clip_weights=mu_init).cuda(self.args.gpu)
         dota_model.update()
 

@@ -87,9 +87,6 @@ class BCA(BaseMethod):
         progress = ProgressMeter(len(val_loader), [batch_time, top1, top5], prefix="Test: ")
 
         self.model.eval()
-        with torch.no_grad():
-            self.model.reset()
-
         end = time.time()
         
         # Initialize BCA model

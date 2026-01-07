@@ -1,5 +1,5 @@
 """
-    BATCLIP: Bimodal Online Test-Time Adaptation for CLIP
+    BATCLIP: Bimodal Online Test-Time Adaptation for CLIP,
     https://arxiv.org/abs/2412.02837,
     https://github.com/sarthaxxxxx/BATCLIP
 """
@@ -14,8 +14,6 @@ from copy import deepcopy
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, softmax_entropy, I2TLoss, InterMeanLoss
 from ttabc.model_selection.base_method import BaseMethod
 
-
-# NOTE: for methods that don't optimize prompts (e.g., BATCLIP), we still set the 'prompt_type' argument to 'no_prompt', and configure the model in each method accordingly.
 class BATCLIP(BaseMethod):
     def __init__(self, args):
         super().__init__(args)
@@ -88,6 +86,7 @@ class BATCLIP(BaseMethod):
             [batch_time, top1, top5],
             prefix='Test: ')
         
+        self.reset()
         end = time.time()
     
         for i, (images, target) in enumerate(val_loader):
@@ -104,8 +103,9 @@ class BATCLIP(BaseMethod):
                 image = images
             target = target.cuda(self.args.gpu, non_blocking=True)
 
-            # Reset the tunable prompt to its initial state
-            if self.args.tta_steps > 0:
+            # Reset the norm layers to its initial state
+            if self.args.tta_steps > 0 and self.args.episodic:
+                # Episodic reset (default disabled)
                 with torch.no_grad():
                     self.reset() 
                 # Perform test-time tuning

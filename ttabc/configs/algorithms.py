@@ -154,6 +154,7 @@ algorithm_defaults = {
         "supported_list": ['norm'],
         "optimizer": "SGD",
         "batch_size": 64,
+        "episodic": False,
     },
     
     "histpt": {
@@ -171,6 +172,7 @@ algorithm_defaults = {
         "memory_size": 32,  # Local knowledge bank size L=H=32
         "hard_topk": 16,  # Number of hard-sample features K=16
         "ema_momentum": 0.99,  # Update coefficient γ=0.99 for global knowledge bank
+        "episodic": False,
     },
     
     "dmn": {
