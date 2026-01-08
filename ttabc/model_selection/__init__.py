@@ -16,6 +16,7 @@ from .bca import BCA
 from .dota import DOTA
 from .tent import Tent
 from .sar import SAR
+from .deyo import DeYO
 
 
 def get_method(method_name):
@@ -37,6 +38,7 @@ def get_method(method_name):
         'dota': DOTA,
         'tent': Tent,
         'sar': SAR,
+        'deyo': DeYO,
     }
     
     if method_name not in method_dict:

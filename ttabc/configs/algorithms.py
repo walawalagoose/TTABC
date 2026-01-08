@@ -152,7 +152,7 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "SGD",
+        "optimizer": "AdamW",
         "batch_size": 64,
         "episodic": False,
     },
@@ -229,7 +229,7 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "SGD",
+        "optimizer": "AdamW",
         "batch_size": 64,
         "episodic": False,
     },
@@ -237,7 +237,6 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "SGD",
         "batch_size": 64,
         "episodic": False,
         
@@ -248,18 +247,16 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "SGD",
+        "optimizer": "AdamW",
         "batch_size": 64,
         "episodic": False,
         
         "deyo_margin": 0.50, # remember to multiply math.log(num_classes)
-        "filter_ent": True, # whether to filter samples by entropy
         "aug_type": "patch", # the augmentation type for prime
         "occlusion_size": 112, # choises for occ
         "row_start": 56, # choises for occ
         "column_start": 56, # choises for occ
         "patch_len": 4, # choises for patch
-        "filter_plpd": True, # whether to filter samples by plpd
         "plpd_threshold": 0.3, # plpd threshold for DeYO
         "reweight_ent": 1, # reweight entropy loss
         "reweight_plpd": 1, # reweight plpd loss
