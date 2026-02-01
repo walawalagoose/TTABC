@@ -21,7 +21,7 @@ def get_entropy_tda(loss, n_classes):
         loss = loss.item()
     return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
 
-def select_confident_samples(feat, logits, topTPT):
+def select_confident_samples_boostadapter(feat, logits, topTPT):
     batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
     idxTPT = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * topTPT)]
     # return feat[idxTPT], logits[idxTPT]
@@ -183,7 +183,7 @@ class BoostAdapter(BaseMethod):
                     self.pos_config['shot_capacity'],
                     fifo=False)
                 
-                select_feat, select_output, select_idx = select_confident_samples(ori_feat, ori_output, self.args.selection_p)
+                select_feat, select_output, select_idx = select_confident_samples_boostadapter(ori_feat, ori_output, self.args.selection_p)
                 select_entropy = get_output_entropy(select_output)
                 
                 cur_pos_cache = copy.deepcopy(self.pos_cache)

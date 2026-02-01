@@ -9,7 +9,8 @@ import torch.nn.functional as F
 
 from clip import load, tokenize
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
-from data.imagnet_prompts import imagenet_classes
+from data.imagenet_prompts import imagenet_classes
+from data.prompt_utils import build_ctx_init, build_text_features
 from data.fewshot_datasets import fewshot_datasets
 from data.cls_to_names import *
 
@@ -280,6 +281,7 @@ class ClipTestTimeTuning(nn.Module):
                         n_ctx=16, ctx_init=None, ctx_position='end', learned_cls=False):
         super(ClipTestTimeTuning, self).__init__()
         clip, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
+        self.clip_model = clip
         self.image_encoder = clip.visual
         self.text_encoder = TextEncoder(clip)
         self.logit_scale = clip.logit_scale.data
@@ -336,7 +338,7 @@ class ClipTestTimeTuning(nn.Module):
 
 
 class ClipZeroShot(nn.Module):
-    def __init__(self, device, classnames, arch="ViT-B/16", ctx_init="a photo of a"):
+    def __init__(self, device, classnames, arch="ViT-B/16", ctx_init="a photo of a", prompt_setting=None, dataset=None):
         super(ClipZeroShot, self).__init__()
         clip_model, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
         self.clip_model = clip_model
@@ -346,6 +348,8 @@ class ClipZeroShot(nn.Module):
         self.device = device
         self.dtype = clip_model.dtype
         self.ctx_init = ctx_init
+        self.prompt_setting = prompt_setting
+        self.dataset = dataset
         
         # prepare the prompts in advance
         self.classnames = classnames
@@ -353,14 +357,17 @@ class ClipZeroShot(nn.Module):
         self._build_text_features(classnames)
     
     def _build_text_features(self, classnames):
-        # self.prompts = [f"{self.ctx_init} {name.replace('_', ' ')}." for name in classnames]
-        self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
-        self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(self.device)
-        
-        with torch.no_grad():
-            text_embeddings = self.clip_model.token_embedding(self.tokenized_prompts)
-            text_features = self.text_encoder(text_embeddings, self.tokenized_prompts)
-            text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        if self.prompt_setting is None:
+            # self.prompts = [f"{self.ctx_init} {name.replace('_', ' ')}." for name in classnames]
+            self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
+            self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(self.device)
+            with torch.no_grad():
+                text_embeddings = self.clip_model.token_embedding(self.tokenized_prompts)
+                text_features = self.text_encoder(text_embeddings, self.tokenized_prompts)
+                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        else:
+            with torch.no_grad():
+                _, text_features = build_text_features(self.clip_model,classnames,self.prompt_setting,dataset=self.dataset,device=self.device)
         if 'text_features' in self._buffers:
             del self._buffers['text_features']
         self.register_buffer("text_features", text_features)
@@ -393,7 +400,7 @@ class ClipZeroShot(nn.Module):
         return logits, image_features
 
 class ClipTestTimeTuningNorm(nn.Module):
-    def __init__(self, device, classnames, arch="ViT-B/16"):
+    def __init__(self, device, classnames, arch="ViT-B/16", prompt_setting=None, dataset=None):
         super().__init__()
         clip_model, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
         self.clip_model = clip_model
@@ -401,6 +408,8 @@ class ClipTestTimeTuningNorm(nn.Module):
         self.dtype = clip_model.dtype
         self.logit_scale = clip_model.logit_scale.data
         self.classnames = classnames
+        self.prompt_setting = prompt_setting
+        self.dataset = dataset
         # An extra interface for convenience
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model).to(device)
@@ -408,8 +417,14 @@ class ClipTestTimeTuningNorm(nn.Module):
         self._build_prompts(classnames)
 
     def _build_prompts(self, classnames):
-        self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
-        self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(self.device)
+        if self.prompt_setting is None:
+            self.prompts = [f"a photo of a {name.replace('_', ' ')}." for name in classnames]
+            self.tokenized_prompts = torch.cat([tokenize(p) for p in self.prompts]).to(self.device)
+            self.prompt_sets = None
+        else:
+            with torch.no_grad():
+                self.pre_text_features, self.text_features = build_text_features(self.clip_model,classnames,self.prompt_setting,dataset=self.dataset,device=self.device,)
+            self.tokenized_prompts = None
 
     def reset(self):
         # Implemented in specific methods
@@ -423,9 +438,13 @@ class ClipTestTimeTuningNorm(nn.Module):
     def forward(self, image, return_features=False):
         pre_image_features = self.clip_model.encode_image(image.type(self.dtype))
         image_features = pre_image_features / pre_image_features.norm(dim=-1, keepdim=True)
-        
-        pre_text_features = self.clip_model.encode_text(self.tokenized_prompts)
-        text_features = pre_text_features / pre_text_features.norm(dim=-1, keepdim=True)
+
+        if self.prompt_setting is None:
+            pre_text_features = self.clip_model.encode_text(self.tokenized_prompts)
+            text_features = pre_text_features / pre_text_features.norm(dim=-1, keepdim=True)
+        else:
+            pre_text_features = self.pre_text_features
+            text_features = self.text_features
         
         logit_scale = self.logit_scale.exp()
         logits = logit_scale * (image_features @ text_features.t())
@@ -437,7 +456,7 @@ class ClipTestTimeTuningNorm(nn.Module):
         with torch.no_grad():
             return self.forward(image, return_features=False)
 
-def get_zero_shot(clip_arch, test_set, device):
+def get_zero_shot(clip_arch, test_set, device, prompt_setting=None):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))
     elif test_set == 'bongard':
@@ -445,12 +464,12 @@ def get_zero_shot(clip_arch, test_set, device):
     else:
         classnames = imagenet_classes
 
-    model = ClipZeroShot(device, classnames, arch=clip_arch)
+    model = ClipZeroShot(device, classnames, arch=clip_arch, prompt_setting=prompt_setting, dataset=test_set)
 
     return model
 
 
-def get_coop(clip_arch, test_set, device, n_ctx, ctx_init, learned_cls=False):
+def get_coop(clip_arch, test_set, device, n_ctx, ctx_init, learned_cls=False, prompt_setting=None):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))
     elif test_set == 'bongard':
@@ -463,11 +482,25 @@ def get_coop(clip_arch, test_set, device, n_ctx, ctx_init, learned_cls=False):
 
     model = ClipTestTimeTuning(device, classnames, None, arch=clip_arch,
                             n_ctx=n_ctx, ctx_init=ctx_init, learned_cls=learned_cls)
+    if prompt_setting is not None:
+        init_device = f"cuda:{device}" if isinstance(device, int) else device
+        ctx_init = build_ctx_init(
+            model.clip_model,
+            classnames,
+            prompt_setting,
+            n_ctx,
+            dataset=test_set,
+            device=init_device,
+        )
+        if ctx_init is not None:
+            with torch.no_grad():
+                model.prompt_learner.ctx.copy_(ctx_init)
+                model.prompt_learner.ctx_init_state = ctx_init
 
     return model
 
 
-def get_tta_norm(clip_arch, test_set, device):
+def get_tta_norm(clip_arch, test_set, device, prompt_setting=None):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))
     elif test_set == 'bongard':
@@ -475,6 +508,6 @@ def get_tta_norm(clip_arch, test_set, device):
     else:
         classnames = imagenet_classes
         
-    model = ClipTestTimeTuningNorm(device, classnames, arch=clip_arch)
+    model = ClipTestTimeTuningNorm(device, classnames, arch=clip_arch, prompt_setting=prompt_setting, dataset=test_set)
     
     return model

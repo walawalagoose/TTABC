@@ -12,7 +12,7 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
-from data.imagnet_prompts import imagenet_classes
+from data.imagenet_prompts import imagenet_classes
 from data.cifar_prompts import cifar10_classes, cifar100_classes
 from data.datautils import AugMixAugmenter, build_dataset
 from data.cls_to_names import *

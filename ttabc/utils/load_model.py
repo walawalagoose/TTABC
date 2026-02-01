@@ -27,7 +27,7 @@ from clip.custom_clip import get_coop, get_zero_shot, get_tta_norm
 from clip.cocoop import get_cocoop
 from clip.maple import get_maple
 from clip.visual_prompting import get_visual_prompt_clip
-from data.imagnet_prompts import imagenet_classes
+from data.imagenet_prompts import imagenet_classes
 from data.datautils import AugMixAugmenter, build_dataset
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, load_model_weight, build_optimizer
 from data.cls_to_names import *
@@ -50,17 +50,16 @@ def create_model(args):
         
     assert args.prompt_type in args.supported_list, \
         f"Prompting type {args.prompt_type} not supported for {args.run_type}"
-        
     if args.prompt_type in ['no_prompt', None]:
-        model = get_zero_shot(args.arch, args.test_sets, args.gpu)
+        model = get_zero_shot(args.arch, args.test_sets, args.gpu, args.prompt_setting)
         model_state = deepcopy(model.state_dict())
         
     elif args.prompt_type in ['norm']:
-        model = get_tta_norm(args.arch, args.test_sets, args.gpu)
+        model = get_tta_norm(args.arch, args.test_sets, args.gpu, args.prompt_setting)
         model_state = deepcopy(model.state_dict())
         
     elif args.prompt_type == 'coop':
-        model = get_coop(args.arch, args.test_sets, args.gpu, args.n_ctx, args.ctx_init)
+        model = get_coop(args.arch, args.test_sets, args.gpu, args.n_ctx, args.ctx_init, args.prompt_setting)
         if args.load is not None:
             print("Use pre-trained soft prompt (CoOp) as initialization")
             pretrained_ctx = torch.load(args.load, weights_only=False)['state_dict']['ctx']
@@ -76,7 +75,7 @@ def create_model(args):
                 param.requires_grad_(False)
             
     elif args.prompt_type == 'cocoop':
-        model = get_cocoop(args.arch, args.test_sets, 'cpu', args.n_ctx)
+        model = get_cocoop(args.arch, args.test_sets, 'cpu', args.n_ctx, args.prompt_setting)
         assert args.load is not None
         load_model_weight(args.load, model, 'cpu', args) # to load to cuda: device="cuda:{}".format(args.gpu)
         model_state = deepcopy(model.state_dict())

@@ -8,7 +8,8 @@ import torch.nn.functional as F
 from clip import load, tokenize
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
 from .custom_clip import TextEncoder
-from data.imagnet_prompts import imagenet_classes
+from data.imagenet_prompts import imagenet_classes
+from data.prompt_utils import build_ctx_init
 from data.cls_to_names import *
 from data.fewshot_datasets import fewshot_datasets
 import ipdb 
@@ -143,6 +144,7 @@ class CoCoOpCLIP(nn.Module):
                         n_ctx=16, ctx_init="a_photo_of_a", ctx_position='end'):
         super().__init__()
         clip, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
+        self.clip_model = clip
         self.image_encoder = clip.visual
         self.text_encoder = TextEncoder(clip)
         self.logit_scale = clip.logit_scale.data
@@ -238,12 +240,24 @@ class CoCoOpCLIP(nn.Module):
         else:
             return self.inference(input)
 
-def get_cocoop(clip_arch, test_set, device, n_ctx):
+def get_cocoop(clip_arch, test_set, device, n_ctx, prompt_setting=None):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))
     else:
         classnames = imagenet_classes
     
     model = CoCoOpCLIP(device, classnames, arch=clip_arch, n_ctx=n_ctx)
+    if prompt_setting is not None:
+        ctx_init = build_ctx_init(
+            model.clip_model,
+            classnames,
+            prompt_setting,
+            n_ctx,
+            dataset=test_set,
+            device=device,
+        )
+        if ctx_init is not None:
+            with torch.no_grad():
+                model.prompt_generator.ctx.copy_(ctx_init)
 
     return model

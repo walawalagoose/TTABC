@@ -11,7 +11,7 @@ from typing import Optional
 import torch
 
 from clip import tokenize
-from data.imagnet_prompts import tip_imagenet_templates
+from data.imagenet_prompts import tip_imagenet_templates
 from data.cifar_prompts import cifar_templates
 from ttabc.model_selection.base_method import BaseMethod
 from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples

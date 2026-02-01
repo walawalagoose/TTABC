@@ -5,7 +5,7 @@ import copy
 import clip
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
 
-from data.imagnet_prompts import imagenet_classes
+from data.imagenet_prompts import imagenet_classes
 from data.cls_to_names import *
 from data.fewshot_datasets import fewshot_datasets
 
