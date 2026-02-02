@@ -277,4 +277,26 @@ algorithm_defaults = {
         # Note: Before running TPS, generate prototypes using:
         # python3 generate_gpt_concepts.py --arch ViT-B/16 --datasets I/A/R/V --concepts_json /path/to/gpt4.json
     },
+    
+      "dpe": {
+        "tpt": True,
+        "prompt_type": 'prototype',
+        "supported_list": ['prototype'],
+        "optimizer": "SGD",
+        "batch_size": 64,
+        "selection_p": 0.1,
+        
+        "pos_config": {
+            "enabled": True,
+            "shot_capacity": 3,  # Maximum samples per class in cache
+            "alpha": 6.0,  # Cache weight for logits computation
+            "beta": 5.0,  # Temperature parameter for cache similarity
+        },
+        "lr_config": {
+            "text": 5e-3,  # Learning rate for text prototype residuals
+            "image": 5e-3,  # Learning rate for image prototype residuals
+            "align": 0.5,  # Weight for InfoNCE alignment loss
+        },
+        "global_update_threshold": 0.1, 
+      },
 }

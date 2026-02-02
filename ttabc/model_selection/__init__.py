@@ -18,6 +18,7 @@ from .tent import Tent
 from .sar import SAR
 from .deyo import DeYO
 from .tps import TPS
+from .dpe import DPE_CLIP
 
 
 def get_method(method_name):
@@ -41,6 +42,7 @@ def get_method(method_name):
         'sar': SAR,
         'deyo': DeYO,
         'tps': TPS,
+        'dpe': DPE_CLIP,
     }
     
     if method_name not in method_dict:

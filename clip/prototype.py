@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from clip import tokenize
+from data.prompt_utils import build_text_features
+
 class Shifter(nn.Module):
     def __init__(self, 
             embed_dim=512, 
@@ -141,4 +144,69 @@ class PrototypeShifterWrapper(nn.Module):
 def wrap_prototype_shifter(backbone, prototypes, **kwargs):
     clip_model = backbone.clip_model if hasattr(backbone, "clip_model") else backbone
     return PrototypeShifterWrapper(clip_model=clip_model, prototypes=prototypes, **kwargs)
+
+
+class DPEWrapper(nn.Module):
+    def __init__(self, backbone):
+        super().__init__()
+        self.backbone = backbone
+        self.clip_model = backbone.clip_model if hasattr(backbone, "clip_model") else backbone
+        self.device = self.clip_model.visual.conv1.weight.device
+        self.logit_scale = self.clip_model.logit_scale.data
+        self.dtype = self.clip_model.dtype
+
+        self.classnames = getattr(backbone, "classnames", None)
+        self.prompt_setting = getattr(backbone, "prompt_setting", None)
+        self.dataset = getattr(backbone, "dataset", None)
+
+        self._build_text_features()
+
+    def _build_text_features(self):
+        if self.classnames is None:
+            return
+
+        if self.prompt_setting is None:
+            prompts = [f"a photo of a {name.replace('_', ' ')}." for name in self.classnames]
+            tokenized_prompts = torch.cat([tokenize(p) for p in prompts]).to(self.device)
+            with torch.no_grad():
+                text_features = self.clip_model.encode_text(tokenized_prompts)
+                text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+        else:
+            with torch.no_grad():
+                _, text_features = build_text_features(
+                    self.clip_model,
+                    self.classnames,
+                    self.prompt_setting,
+                    dataset=self.dataset,
+                    device=self.device,
+                )
+
+        if "text_features" in self._buffers:
+            del self._buffers["text_features"]
+        self.register_buffer("text_features", text_features)
+
+    def reset_classnames(self, classnames, arch=None):
+        self.classnames = classnames
+        self._build_text_features()
+
+    def get_text_features(self):
+        return self.text_features
+
+    def encode_image(self, image):
+        image_features = self.clip_model.encode_image(image.type(self.dtype))
+        return F.normalize(image_features, dim=-1)
+
+    def forward(self, image, return_features=False):
+        image_features = self.encode_image(image)
+        text_features = self.get_text_features()
+        logit_scale = self.logit_scale.exp()
+        logits = logit_scale * (image_features @ text_features.t())
+
+        if return_features:
+            return logits, image_features, text_features
+        return logits
+
+
+def wrap_dpe_backbone(backbone):
+    return DPEWrapper(backbone)
         
