@@ -9,7 +9,7 @@ from .boostadapter import BoostAdapter
 from .difftpt import DiffTPT
 from .zero import ZERO
 from .batclip import BATCLIP
-# from .dmn import DMN
+from .dmn import DMN
 from .histpt import HisTPT
 from .oga import OGA
 from .bca import BCA
@@ -34,8 +34,8 @@ def get_method(method_name):
         'boostadapter': BoostAdapter,
         'difftpt': DiffTPT,
         'zero': ZERO,
-        'batclip': BATCLIP,
-        # 'dmn': DMN,
+    'batclip': BATCLIP,
+    'dmn': DMN,
         'histpt': HisTPT,
         'oga': OGA,
         'bca': BCA,

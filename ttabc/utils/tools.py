@@ -215,6 +215,12 @@ def select_confident_samples_cosine(logits, selection_cosine, selection_selfentr
 
     return logits[idx], [idx_cosine, idx], cosine_distan
 
+def get_entropy(loss, n_classes):
+    """get entropy normalized by number of classes"""
+    if isinstance(loss, torch.Tensor):
+        loss = loss.item()
+    return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
+
 
 """
     Common loss functions for test-time adaptation

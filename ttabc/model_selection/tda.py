@@ -11,14 +11,8 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, select_confident_samples
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, select_confident_samples, get_entropy
 from ttabc.model_selection.base_method import BaseMethod
-
-def get_entropy_tda(loss, n_classes):
-    """get entropy normalized by number of classes"""
-    if isinstance(loss, torch.Tensor):
-        loss = loss.item()
-    return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
 
 class TDA(BaseMethod):
     """
@@ -144,7 +138,7 @@ class TDA(BaseMethod):
                     
                     loss = softmax_entropy(clip_logits)
 
-            prop_entropy = get_entropy_tda(loss, len(self.model.classnames)) # class-normalized entropy
+            prop_entropy = get_entropy(loss, len(self.model.classnames)) # class-normalized entropy
 
             # update positive cache
             if self.pos_config['enabled']:

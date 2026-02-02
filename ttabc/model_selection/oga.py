@@ -46,7 +46,7 @@ class GaussAdapt(torch.nn.Module):
                                                  requires_grad = False)
         return init_val
         
-    def get_entropy(self, probs):
+    def get_entropy_oga(self, probs):
         sh_entropy = - torch.sum(torch.log(probs + 1e-6)* probs, dim=-1)
         return sh_entropy
     
@@ -256,7 +256,7 @@ class OGA(BaseMethod):
                     zs_logits, image_features = self.model(image)  # (N,K), (N,d)
 
             zs_probs = zs_logits.softmax(dim=-1)
-            zs_entropy = oga_model.get_entropy(zs_probs)  # [N]
+            zs_entropy = oga_model.get_entropy_oga(zs_probs)  # [N]
             zs_labels = torch.argmax(zs_logits, dim=-1)
 
             # Online memory update

@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 from clip.prototype import wrap_dpe_backbone
 from data.prompt_utils import get_classnames
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, InfoNCELoss, select_confident_samples
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, InfoNCELoss, select_confident_samples, get_entropy
 from ttabc.model_selection.base_method import BaseMethod
 
 
@@ -55,13 +55,6 @@ class PositiveCacheResidue(nn.Module):
         new_pos_cache_keys = x.clone() + self.residual
         new_pos_cache_keys = F.normalize(new_pos_cache_keys, dim=0)
         return new_pos_cache_keys
-
-
-def get_entropy_normalized(loss, n_classes):
-    """get entropy normalized by number of classes"""
-    if isinstance(loss, torch.Tensor):
-        loss = loss.item()
-    return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
 
 
 class DPE_CLIP(BaseMethod):
@@ -207,7 +200,7 @@ class DPE_CLIP(BaseMethod):
         
         # Update positive cache
         if self.pos_config['enabled']:
-            entropy = get_entropy_normalized(loss, num_classes)
+            entropy = get_entropy(loss, num_classes)
             self.update_cache(
                 self.pos_cache,
                 pred,
@@ -349,7 +342,7 @@ class DPE_CLIP(BaseMethod):
                     
                     # Global update: accumulate high-confidence samples
                     loss = marginal_entropy(final_logits)
-                    entropy_normalized = get_entropy_normalized(loss, num_classes)
+                    entropy_normalized = get_entropy(loss, num_classes)
                     
                     if entropy_normalized < self.global_update_threshold:
                         # Cumulative average update

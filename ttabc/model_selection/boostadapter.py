@@ -12,14 +12,8 @@ import torch.nn.functional as F
 from PIL import Image
 import copy
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, select_confident_samples
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, resize_with_CLIP, marginal_entropy, softmax_entropy, select_confident_samples, get_entropy
 from ttabc.model_selection.base_method import BaseMethod
-
-def get_entropy_tda(loss, n_classes):
-    """get entropy normalized by number of classes"""
-    if isinstance(loss, torch.Tensor):
-        loss = loss.item()
-    return loss / torch.log(torch.tensor(n_classes, dtype=torch.float)).item()
 
 def select_confident_samples_boostadapter(feat, logits, topTPT):
     batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
@@ -173,7 +167,7 @@ class BoostAdapter(BaseMethod):
 
             image_features, clip_logits, loss, prob_map, pred, ori_feat, ori_output = self._get_clip_logits(image_features, clip_logits, self.args.infer_ori_image)
 
-            prop_entropy = get_entropy_tda(loss, len(self.model.classnames)) # class-normalized entropy
+            prop_entropy = get_entropy(loss, len(self.model.classnames)) # class-normalized entropy
 
             # update positive cache
             if self.pos_config['enabled']:

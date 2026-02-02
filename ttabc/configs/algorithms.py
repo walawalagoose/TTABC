@@ -179,11 +179,16 @@ algorithm_defaults = {
         "tpt": True,
         "prompt_type": 'no_prompt',
         "supported_list": ['no_prompt'],
+        "batch_size": 64,
+        "selection_p": 0.1,
         
         "memory_size": 50,
         "beta": 5.5,
-        "text_weight": 1.0,
-        "mem_weight": 0.03
+        "text_weight": 1.0, # beta2 in the paper
+        "mem_weight": 0.1, # beta3 in the paper
+        "shared_param": False,
+        "mapping": "bias", # 'bias', 'affine', 'all'
+        "position": "all", # 'query', 'key', 'value', 'qkv', 'output', 'all'
     },
     
     "oga": {
