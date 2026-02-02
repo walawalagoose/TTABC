@@ -19,6 +19,7 @@ from .sar import SAR
 from .deyo import DeYO
 from .tps import TPS
 from .dpe import DPE_CLIP
+from .rlcf import RLCF
 from .calip import CALIP
 
 
@@ -44,6 +45,7 @@ def get_method(method_name):
         'deyo': DeYO,
         'tps': TPS,
         'dpe': DPE_CLIP,
+        'rlcf': RLCF,
         'calip': CALIP,
     }
     

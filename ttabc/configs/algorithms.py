@@ -278,7 +278,7 @@ algorithm_defaults = {
         # python3 generate_gpt_concepts.py --arch ViT-B/16 --datasets I/A/R/V --concepts_json /path/to/gpt4.json
     },
     
-      "dpe": {
+    "dpe": {
         "tpt": True,
         "prompt_type": 'prototype',
         "supported_list": ['prototype'],
@@ -299,9 +299,36 @@ algorithm_defaults = {
         },
         "global_update_threshold": 0.1, 
       },
+    
+    "rlcf": {
+        "tpt": True,
+        "prompt_type": 'coop', # can also be cocoop
+        "supported_list": ['coop', 'cocoop', 'maple'],
+        "load": None,
+        # "load": 'checkpoints/coop/16shots/rn50_ep50_16shots/nctx4_cscFalse_ctpend/seed1/prompt_learner/model.pth.tar-50',
+        # "load": 'checkpoints/cocoop/16shots/rn50_c4_ep10_batch1/seed1/prompt_learner/model.pth.tar-10',
+        "optimizer": "SGD",  # Adam for officehome
+        "batch_size": 64,
+        "ctx_init": 'a_photo_of_a',
+        "selection_p": 0.1,
+        "n_ctx": 4,
+        
+        
+        # RLCF-specific parameters
+        "sample_k": 3,  # Number of classes to sample from top-K
+        "reward_arch": "ViT-L/14",  # Reward model architecture (can be different from main model)
+        "reward_process": True,  # Enable reward post-processing (centering)
+        "reward_amplify": False,  # Standardize rewards (divide by std, default: False)
+        "process_batch": False,  # Process rewards per sample (not across batch)
+        "multiple_reward_models": False,  # Use ensemble of multiple CLIP models as rewards
+        "weighted_scores": True,  # Weighted average for ensemble (only if multiple_reward_models=True)
+        # Optional regularization
+        "min_entropy_reg": False,  # Add entropy regularization to RL loss
+        "min_entropy_w": 0.1,  # Entropy regularization weight
+    },
       
       
-       "calip": {
+    "calip": {
         "tpt": False,
         "prompt_type": "no_prompt",
         "supported_list": ["no_prompt"],
