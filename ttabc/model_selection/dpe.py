@@ -82,6 +82,7 @@ class DPE_CLIP(BaseMethod):
         self.classnames = get_classnames(args.test_sets)
         self.backbone = self.model
         self.model = wrap_dpe_backbone(self.backbone)
+        self.logit_scale = self.model.clip_model.logit_scale.data
 
         self.pos_config = {
             'enabled': True,
@@ -160,7 +161,8 @@ class DPE_CLIP(BaseMethod):
         return alpha * cache_logits
 
     def _compute_logits(self, image_features, clip_weights):
-        return 100.0 * image_features @ clip_weights
+        logit_scale = self.logit_scale.exp()
+        return logit_scale * image_features @ clip_weights
 
     def build_optimizer_dpe(self, text_params, image_params=None):
         opt_name = getattr(self.args, "optimizer", "AdamW").lower()

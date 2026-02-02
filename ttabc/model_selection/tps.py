@@ -40,13 +40,6 @@ class TPS(BaseMethod):
         self.backbone = self.model
         self._setup_model(self.classnames, args.arch)
 
-        print(f"\nTPS Method Initialized:")
-        print(f"  Learning rate: {args.lr}")
-        print(f"  TTA steps: {args.tta_steps}")
-        print(f"  Selection ratio: {args.selection_p}")
-        print(f"  Per-label shift: {getattr(args, 'per_label', False)}")
-        print(f"  Prototype type: {getattr(args, 'prototype_type', 'basic')}\n")
-    
     def _prototype_suffix(self, prototype_type):
         suffix = ""
         if prototype_type in ["templates", "template"]:

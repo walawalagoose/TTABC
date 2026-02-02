@@ -299,4 +299,13 @@ algorithm_defaults = {
         },
         "global_update_threshold": 0.1, 
       },
+      
+      
+       "calip": {
+        "tpt": False,
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "calip_beta2": 1.0,
+        "calip_beta3": 0.01,
+    },
 }
