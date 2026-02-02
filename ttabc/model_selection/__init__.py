@@ -17,6 +17,7 @@ from .dota import DOTA
 from .tent import Tent
 from .sar import SAR
 from .deyo import DeYO
+from .tps import TPS
 
 
 def get_method(method_name):
@@ -39,6 +40,7 @@ def get_method(method_name):
         'tent': Tent,
         'sar': SAR,
         'deyo': DeYO,
+        'tps': TPS,
     }
     
     if method_name not in method_dict:

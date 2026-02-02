@@ -399,7 +399,7 @@ class ClipZeroShot(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
         return logits, image_features
 
-class ClipTestTimeTuningNorm(nn.Module):
+class ClipTTABackbone(nn.Module):
     def __init__(self, device, classnames, arch="ViT-B/16", prompt_setting=None, dataset=None):
         super().__init__()
         clip_model, _, _ = load(arch, device=device, download_root=DOWNLOAD_ROOT)
@@ -500,7 +500,7 @@ def get_coop(clip_arch, test_set, device, n_ctx, ctx_init, learned_cls=False, pr
     return model
 
 
-def get_tta_norm(clip_arch, test_set, device, prompt_setting=None):
+def get_tta_backbone(clip_arch, test_set, device, prompt_setting=None):
     if test_set in fewshot_datasets:
         classnames = eval("{}_classes".format(test_set.lower()))
     elif test_set == 'bongard':
@@ -508,6 +508,6 @@ def get_tta_norm(clip_arch, test_set, device, prompt_setting=None):
     else:
         classnames = imagenet_classes
         
-    model = ClipTestTimeTuningNorm(device, classnames, arch=clip_arch, prompt_setting=prompt_setting, dataset=test_set)
+    model = ClipTTABackbone(device, classnames, arch=clip_arch, prompt_setting=prompt_setting, dataset=test_set)
     
     return model

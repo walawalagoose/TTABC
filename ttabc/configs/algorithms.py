@@ -262,4 +262,19 @@ algorithm_defaults = {
         "reweight_plpd": 1, # reweight plpd loss
         "margin": 0.40, # remember to multiply math.log(num_classes)
     },
+    
+    "tps": {        
+        "tpt": True,
+        "prompt_type": 'prototype',
+        "supported_list": ['prototype'],
+        "optimizer": "SGD",
+        "batch_size": 64, 
+        "selection_p": 0.1, 
+        
+        "per_label": True,
+        "prototype_type": "gpt4_x_templates",  # ['basic', 'templates', 'gpt4', 'gpt4_x_templates']
+        "prototype_dir": ".caches/prototypes", 
+        # Note: Before running TPS, generate prototypes using:
+        # python3 generate_gpt_concepts.py --arch ViT-B/16 --datasets I/A/R/V --concepts_json /path/to/gpt4.json
+    },
 }

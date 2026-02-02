@@ -23,7 +23,7 @@ except ImportError:
     BICUBIC = Image.BICUBIC
 import torchvision.models as models
 
-from clip.custom_clip import get_coop, get_zero_shot, get_tta_norm
+from clip.custom_clip import get_coop, get_zero_shot, get_tta_backbone
 from clip.cocoop import get_cocoop
 from clip.maple import get_maple
 from clip.visual_prompting import get_visual_prompt_clip
@@ -54,8 +54,8 @@ def create_model(args):
         model = get_zero_shot(args.arch, args.test_sets, args.gpu, args.prompt_setting)
         model_state = deepcopy(model.state_dict())
         
-    elif args.prompt_type in ['norm']:
-        model = get_tta_norm(args.arch, args.test_sets, args.gpu, args.prompt_setting)
+    elif args.prompt_type in ['norm', 'prototype']:
+        model = get_tta_backbone(args.arch, args.test_sets, args.gpu, args.prompt_setting)
         model_state = deepcopy(model.state_dict())
         
     elif args.prompt_type == 'coop':
@@ -148,7 +148,7 @@ def set_optimizer(args, model):
         optim_state = None
     
     # Since certain methods requires special parameter optimization, details will be implemented in the method file.
-    elif args.prompt_type in ['norm']:
+    elif args.prompt_type in ['norm', 'prototype']:
         optimizer = None
         optim_state = None
         

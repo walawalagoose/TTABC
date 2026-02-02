@@ -296,6 +296,8 @@ def reset_classnames(args, tpt_methods, class_names):
         tpt_methods.model.reset_classnames(class_names, args.arch)
     elif args.prompt_type in ['norm']:
         tpt_methods.model.reset_classnames(class_names, args.arch)
+    elif args.prompt_type in ['prototype']:
+        tpt_methods.reset_classnames(class_names, args.arch)
     elif args.prompt_type == 'cocoop':
             tpt_methods.model.prompt_generator.reset_classnames(class_names, args.arch)
             tpt_methods.model = tpt_methods.model.cpu()

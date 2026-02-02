@@ -17,6 +17,7 @@ from data.imagenet_variants import (
 
 def get_classnames(dataset: str) -> List[str]:
     """Get class names for a dataset identifier."""
+    dataset_lower = dataset.lower()
     if dataset == 'I':
         return imagenet_classes
     if dataset == 'A':
@@ -36,8 +37,26 @@ def get_classnames(dataset: str) -> List[str]:
     if dataset in ['cifar100', 'cifar100c']:
         return cifar100_classes
 
+    if dataset_lower in ['imagenetc', 'imagenet-c']:
+        return imagenet_classes
+
+    fewshot_map = {
+        'dtd': dtd_classes,
+        'flower102': flower102_classes,
+        'food101': food101_classes,
+        'stanfordcars': stanfordcars_classes,
+        'sun397': sun397_classes,
+        'aircraft': aircraft_classes,
+        'oxfordpets': oxfordpets_classes,
+        'caltech101': caltech101_classes,
+        'ucf101': ucf101_classes,
+        'eurosat': eurosat_classes,
+    }
+    if dataset_lower in fewshot_map:
+        return fewshot_map[dataset_lower]
+
     try:
-        return eval(f"{dataset.lower()}_classes")
+        return eval(f"{dataset_lower}_classes")
     except Exception as exc:
         raise ValueError(f"Unknown dataset: {dataset}") from exc
 
