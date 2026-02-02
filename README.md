@@ -1,6 +1,6 @@
 # TTABC: Test-Time Adaptation Benchmark of CLIP
 
-This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch. It is joint work by Jiazhen Huang, Xiao Chen and Xu Jiang.
+This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch. It is joint work by Jiazhen Huang, Zhiming Liu, and Xiao Chen.
 
 The implementation is built upon [TPT](https://github.com/azshue/TPT). Experiment results are shown in [Link](https://docs.qq.com/sheet/DZUp4dFRZZER0VVdy?tab=jci45g).
 
