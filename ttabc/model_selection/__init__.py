@@ -21,6 +21,7 @@ from .tps import TPS
 from .dpe import DPE_CLIP
 from .rlcf import RLCF
 from .calip import CALIP
+from .promptalign import PROMPTALIGN
 
 
 def get_method(method_name):
@@ -47,6 +48,7 @@ def get_method(method_name):
         'dpe': DPE_CLIP,
         'rlcf': RLCF,
         'calip': CALIP,
+        'promptalign': PROMPTALIGN,
     }
     
     if method_name not in method_dict:

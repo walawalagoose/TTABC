@@ -282,6 +282,28 @@ algorithm_defaults = {
         # Note: Before running TPS, generate prototypes using:
         # python3 generate_gpt_concepts.py --arch ViT-B/16 --datasets I/A/R/V --concepts_json /path/to/gpt4.json
     },
+
+    "promptalign": {
+        "tpt": True,
+        "prompt_type": "maple",
+        "supported_list": ["maple"],
+        "load": None,
+        "optimizer": "SGD",
+        "batch_size": 64,
+        # "ctx_init": "a_photo_of_a",
+        "n_ctx": 2,
+        "prompt_depth": 3,
+        
+        "tpt_loss": True,
+        "distr_align": True,
+        "tpt_threshold": 0.1,
+        "align_threshold": 0.1,
+        "distr_loss_w": 100.0,
+        "align_layer_from": 0,
+        "align_layer_to": 3,
+        "vis_means_path": 'checkpoints/promptalign/ImgNet_vis_means.pt',
+        "vis_vars_path": 'checkpoints/promptalign/ImgNet_vis_vars.pt',
+    },
     
     "dpe": {
         "tpt": True,

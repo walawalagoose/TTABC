@@ -328,6 +328,10 @@ class ResidualAttentionBlock_MaPLe(nn.Module):
                         counter += 1
         x = x + self.attention(self.ln_1(x))
         x = x + self.mlp(self.ln_2(x))
+        if self.text_layer:
+            self.text_feat = x
+        else:
+            self.visual_feat = x
         return [x, compound_prompts_deeper, counter]  # return again as a list, so that nn.seq can work
 
 
