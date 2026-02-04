@@ -137,9 +137,9 @@ class ProgressMeter(object):
         summaries = [m.summary() for m in self.meters]
         summaries = [s for s in summaries if s]
         if summaries:
-            logger.info("Final: | {}", " | ".join(summaries))
+            logger.info("Final | {}", " | ".join(summaries))
         else:
-            logger.info("Final:")
+            logger.info("Final")
 
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
