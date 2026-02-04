@@ -1,25 +1,38 @@
 import argparse
+import json
+import os
+import sys
+from datetime import datetime
+from loguru import logger
 
 from PIL import Image
 
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-
 import torchvision.models as models
 
 from ttabc.utils.tools import set_random_seed, reset_classnames
-from ttabc.utils.metrics_tools import ece_calculator, accuracy_writer
+from ttabc.utils.metrics_tools import ece_calculator
 from ttabc.utils.load_data import create_dataloader
 from ttabc.model_selection import get_method
 from ttabc.utils.configs_tool import config_hparams
 from data.cls_to_names import *
 
-from datetime import datetime
-import os
-
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
+
+def _get_dataset_dir_name(args, set_id):
+    if set_id.lower() in {"imagenetc", "cifar10c", "cifar100c"}:
+        return f"{set_id}_{args.corruption_type}_{args.corruption_level}"
+    return set_id
+
+
+def _setup_logger(log_file_path):
+    logger.remove()
+    logger.add(sys.stdout, level="INFO")
+    logger.add(log_file_path, level="INFO", enqueue=True)
+
 
 def main(args):
 
@@ -28,10 +41,6 @@ def main(args):
     # This codebase has only been tested under the single GPU setting
     assert args.gpu is not None
     set_random_seed(args.seed)
-    print("Use GPU: {} for training".format(args.gpu))
-    # print the run_type and prompt_type
-    print(f"TTA Method: {args.run_type}, Prompting type: {args.prompt_type}")
-    
     tta_methods = get_method(args.run_type)(args)
 
     cudnn.benchmark = True
@@ -41,21 +50,26 @@ def main(args):
     results_for_ece = {}
     ece_res = {}
     for set_id in datasets:
-        if args.log_dir is not None:
-            # Create a folder named with the current date
-            date_str = datetime.now().strftime('%Y-%m-%d')
-            log_path = os.path.join(args.log_dir, date_str)
-            os.makedirs(log_path, exist_ok=True)
-            
-            # Create a file to store args and printed parameters
-            file_name = f"{args.run_type}_{set_id}_{args.arch.replace('/', '-')}.txt"
-            file_path = os.path.join(log_path, file_name)
+        arch_str = args.arch.replace('/', '-').lower()
+        dataset_str = _get_dataset_dir_name(args, set_id)
+        base_dir = os.path.join(args.log_dir, arch_str, dataset_str)
+        date_dir = datetime.now().strftime('%Y%m%d_%H%M%S')
+        run_dir_name = f"{args.run_type}_{args.prompt_type}_{date_dir}"
+        run_dir = os.path.join(base_dir, run_dir_name)
+        os.makedirs(run_dir, exist_ok=True)
 
-            with open(file_path, 'a') as f:
-                # Write args to the file
-                for arg, value in vars(args).items():
-                    f.write(f"{arg}: {value}\n")
+        json_path = os.path.join(run_dir, f"{run_dir_name}.json")
+        log_path = os.path.join(run_dir, f"{run_dir_name}.log")
+        _setup_logger(log_path)
 
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(vars(args), f, ensure_ascii=False, indent=2, default=str)
+
+        logger.info("Use GPU: {} for training", args.gpu)
+        logger.info("Architecture: {}", args.arch)
+        logger.info("TTA Method: {}, Prompting type: {}", args.run_type, args.prompt_type)
+        logger.info("Evaluating on dataset: {}", dataset_str)
+        
         val_dataset, val_loader, classnames = create_dataloader(args, set_id)
         
         reset_classnames(args, tta_methods, classnames)
@@ -64,14 +78,20 @@ def main(args):
         results[set_id] = tta_methods.test_time_adapt_eval(val_loader, results_for_ece[set_id])
         _, ece_res[set_id] = ece_calculator(results_for_ece[set_id])
         del val_dataset, val_loader
-        try:
-            print("=> Acc. on testset [{}]: @1 {}/ @5 {}".format(set_id, results[set_id][0], results[set_id][1]))
-        except:
-            print("=> Acc. on testset [{}]: {}".format(set_id, results[set_id]))
-    if args.log_dir is not None:
-        accuracy_writer(args, results, ece_res, log_path=log_path, file_path=file_path)
-    else:
-        accuracy_writer(args, results, ece_res)
+        # try:
+        #     logger.info("=> Acc. on testset [{}]: @1 {:.2f}/ @5 {:.2f}", set_id, results[set_id][0], results[set_id][1])
+        # except Exception:
+        #     logger.info("=> Acc. on testset [{}]: {}", set_id, results[set_id])
+
+        logger.info("============= Result Summary =============")
+        logger.info("Params:         nstep\tlr\tbs")
+        logger.info("Params:         {}\t{}\t{}", args.tta_steps, args.lr, args.batch_size)
+        logger.info("Dataset:        {}", set_id)
+        logger.info("Top-1 Acc.:     {:.2f}", results[set_id][0])
+        logger.info("Top-5 Acc.:     {:.2f}", results[set_id][1])
+        logger.info("ECE:            {:.2f}", ece_res[set_id])
+        # logger.info("{} \t {:.2f} \t {:.2f} \t {:.2f}", set_id, results[set_id][0], results[set_id][1], ece_res[set_id])
+        logger.info("=================== End ==================")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test-time Prompt Tuning')

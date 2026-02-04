@@ -23,7 +23,7 @@ algorithm_defaults = {
     "tpt": {
         "tpt": True,
         "prompt_type": 'coop', # can also be cocoop
-        "supported_list": ['coop', 'cocoop', 'vp'],
+        "supported_list": ['coop', 'cocoop', 'vp', 'maple'],
         "vp_type": 'lor_vp',
         "vp_mode": 'coop', # 'zs' or 'coop', 'cocoop' not supported yet
         "load": None,

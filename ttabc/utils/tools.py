@@ -11,6 +11,7 @@ import torch
 import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
+from loguru import logger
 
 
 def set_random_seed(seed):
@@ -52,12 +53,26 @@ class AverageMeter(object):
         self.avg = 0
         self.sum = 0
         self.count = 0
+        # window stats between two consecutive progress prints
+        self.window_sum = 0
+        self.window_count = 0
 
     def update(self, val, n=1):
         self.val = val
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+        self.window_sum += val * n
+        self.window_count += n
+
+    def reset_window(self):
+        self.window_sum = 0
+        self.window_count = 0
+
+    def window_avg(self):
+        if self.window_count == 0:
+            return self.avg
+        return self.window_sum / self.window_count
 
     def __str__(self):
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
@@ -81,19 +96,50 @@ class AverageMeter(object):
 
 class ProgressMeter(object):
     def __init__(self, num_batches, meters, prefix=""):
+        self.num_batches = num_batches
         self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
         self.meters = meters
         self.prefix = prefix
 
     def display(self, batch):
-        entries = [self.prefix + self.batch_fmtstr.format(batch)]
-        entries += [str(meter) for meter in self.meters]
-        print('\t'.join(entries))
+        batch_human = batch + 1
+        header = f"{self.prefix} [{batch_human}/{self.num_batches}]"
+
+        def _to_float(x):
+            if isinstance(x, torch.Tensor):
+                return x.detach().float().item()
+            return float(x)
+
+        def _fmt(v, meter_fmt):
+            fmt = meter_fmt[1:] if isinstance(meter_fmt, str) and meter_fmt.startswith(':') else meter_fmt
+            return format(_to_float(v), fmt)
+
+        parts = []
+        for meter in self.meters:
+            try:
+                # By default: report interval average (between two prints) + global average.
+                # If you want per-batch values back, replace `meter.window_avg()` with `meter.val`.
+                interval_val = meter.window_avg() if hasattr(meter, "window_avg") else meter.val
+                val_str = _fmt(interval_val, meter.fmt)
+                avg_str = _fmt(meter.avg, meter.fmt)
+                parts.append(f"{meter.name}: {val_str} ({avg_str})")
+            except Exception:
+                parts.append(str(meter))
+
+        logger.info("{} | {}", header, " | ".join(parts))
+
+        # reset window accumulators so next display reports the next interval
+        for meter in self.meters:
+            if hasattr(meter, "reset_window"):
+                meter.reset_window()
         
     def display_summary(self):
-        entries = [" *"]
-        entries += [meter.summary() for meter in self.meters]
-        print(' '.join(entries))
+        summaries = [m.summary() for m in self.meters]
+        summaries = [s for s in summaries if s]
+        if summaries:
+            logger.info("Final: | {}", " | ".join(summaries))
+        else:
+            logger.info("Final:")
 
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))

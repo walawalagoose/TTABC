@@ -15,6 +15,7 @@ jedi==0.19.2
 Jinja2==3.1.4
 joblib==1.5.1
 kiwisolver==1.4.9
+loguru==0.7.2
 MarkupSafe==2.1.5
 matplotlib==3.10.5
 matplotlib-inline==0.1.7

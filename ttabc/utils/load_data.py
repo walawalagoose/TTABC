@@ -24,6 +24,7 @@ import math
 import pickle
 from datetime import datetime
 import os
+from loguru import logger
 
 def create_dataloader(args, set_id):
     # norm stats from clip.load()
@@ -53,7 +54,6 @@ def create_dataloader(args, set_id):
         ])
         real_batch_size = args.batch_size
 
-    print("evaluating: {}".format(set_id))
     # reset the model
     # Reset classnames of custom CLIP model
     if len(set_id) > 1 and 'imagenet' not in set_id and 'cifar' not in set_id: 
@@ -97,7 +97,7 @@ def create_dataloader(args, set_id):
         total_size = len(val_dataset)
         sample_size = int(args.down_sample_ratio * total_size)
         indices = np.random.choice(total_size, sample_size, replace=False)
-        print("number of test samples: {}".format(sample_size))
+        logger.info("Number of test samples: {}".format(sample_size))
         # Create SubsetRandomSampler
         sampler = torch.utils.data.SubsetRandomSampler(indices)
         # Create DataLoader
@@ -109,7 +109,7 @@ def create_dataloader(args, set_id):
             pin_memory=True
         )
     else: 
-        print("number of test samples: {}".format(len(val_dataset)))
+        logger.info("Number of test samples: {}".format(len(val_dataset)))
         val_loader = torch.utils.data.DataLoader(
                     val_dataset,
                     batch_size=real_batch_size, shuffle=True,
