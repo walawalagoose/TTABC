@@ -243,8 +243,11 @@ def validate(val_loader, model, criterion, args, output_mask=None):
 
 def select_confident_samples(logits, top):
     batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
-    idx = torch.argsort(batch_entropy, descending=False)[:int(batch_entropy.size()[0] * top)]
+    bs = int(batch_entropy.size()[0])
+    topk = max(bs * top, 1)
+    idx = torch.argsort(batch_entropy, descending=False)[:topk]
     return logits[idx], idx
+    
 
 def select_confident_samples_cosine(logits, selection_cosine, selection_selfentro):
     cosine_distan = [torch.nn.CosineSimilarity(dim=0)(logits[0], logits[i]) for i in range(1, logits.shape[0])]

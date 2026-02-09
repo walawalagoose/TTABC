@@ -192,10 +192,11 @@ algorithm_defaults = {
     },
     
     "oga": {
-        "tpt": False,
+        "tpt": True,
         "prompt_type": "no_prompt",
         "supported_list": ["no_prompt"],
-        "batch_size": 1,
+        "batch_size": 64,
+        "selection_p": 0.1,
         "shot_capacity": 8,
         "tau": 0.05,
         "sig_type": "RidgeMoorePenrose",

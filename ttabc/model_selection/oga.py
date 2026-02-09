@@ -7,7 +7,7 @@
 import time
 import torch
 
-from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy
+from ttabc.utils.tools import Summary, AverageMeter, ProgressMeter, accuracy, select_confident_samples
 from ttabc.model_selection.base_method import BaseMethod
 
 
@@ -245,15 +245,25 @@ class OGA(BaseMethod):
 
         for i, (images, target) in enumerate(val_loader):
             assert self.args.gpu is not None
-            assert not isinstance(images, list), "OGA requires tpt=False."
-            # images must be batch-wise
-            images = images.cuda(self.args.gpu, non_blocking=True)
-            image = images
+            if isinstance(images, list):
+                for k in range(len(images)):
+                    images[k] = images[k].cuda(self.args.gpu, non_blocking=True)
+                image = images[0]
+                images = torch.cat(images, dim=0)
+            else:
+                images = images.cuda(self.args.gpu, non_blocking=True)
+                image = images
             target = target.cuda(self.args.gpu, non_blocking=True)
 
             with torch.no_grad():
                 with torch.amp.autocast(device_type="cuda"):
                     zs_logits, image_features = self.model(image)  # (N,K), (N,d)
+
+            if self.args.tpt:
+                zs_logits, selected_idx = select_confident_samples(zs_logits, self.args.selection_p)
+                image_features = image_features[selected_idx]
+                zs_logits = zs_logits.mean(dim=0, keepdim=True)
+                image_features = image_features.mean(dim=0, keepdim=True)
 
             zs_probs = zs_logits.softmax(dim=-1)
             zs_entropy = oga_model.get_entropy_oga(zs_probs)  # [N]
