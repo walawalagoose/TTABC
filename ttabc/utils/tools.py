@@ -244,7 +244,7 @@ def validate(val_loader, model, criterion, args, output_mask=None):
 def select_confident_samples(logits, top):
     batch_entropy = -(logits.softmax(1) * logits.log_softmax(1)).sum(1)
     bs = int(batch_entropy.size()[0])
-    topk = max(bs * top, 1)
+    topk = int(max(bs * top, 1)) 
     idx = torch.argsort(batch_entropy, descending=False)[:topk]
     return logits[idx], idx
     

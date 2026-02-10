@@ -363,4 +363,18 @@ algorithm_defaults = {
         "calip_beta2": 1.0,
         "calip_beta3": 0.01,
     },
+    "atpt": {
+        "tpt": True,
+        "prompt_type": 'coop',
+        "supported_list": ['coop', 'cocoop', 'vp'],
+        # "vp_type": 'lor_vp',
+        "load": None,
+        "optimizer": "SGD",  # Adam for officehome
+        "batch_size": 64,
+        "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
+        "selection_p": 0.1,  # confidence threshold for online shot.
+        "n_ctx": 4,  # number of prompt tokens
+        "lambda_term": 80.0,  # lambda for a-tpt
+        "two_step": False,  # whether to use two-step training
+    },
 }

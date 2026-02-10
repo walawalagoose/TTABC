@@ -22,6 +22,7 @@ from .dpe import DPE_CLIP
 from .rlcf import RLCF
 from .calip import CALIP
 from .promptalign import PROMPTALIGN
+from .atpt import ATPT
 
 
 def get_method(method_name):
@@ -35,8 +36,8 @@ def get_method(method_name):
         'boostadapter': BoostAdapter,
         'difftpt': DiffTPT,
         'zero': ZERO,
-    'batclip': BATCLIP,
-    'dmn': DMN,
+        'batclip': BATCLIP,
+        'dmn': DMN,
         'histpt': HisTPT,
         'oga': OGA,
         'bca': BCA,
@@ -49,6 +50,7 @@ def get_method(method_name):
         'rlcf': RLCF,
         'calip': CALIP,
         'promptalign': PROMPTALIGN,
+        'atpt': ATPT,
     }
     
     if method_name not in method_dict:
