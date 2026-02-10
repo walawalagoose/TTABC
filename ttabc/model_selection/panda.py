@@ -1,8 +1,7 @@
 """
-    Panda: Tent + Negative Data Augmentation (Official-aligned)
-    Based on:
-    Tent: Fully test-time adaptation by entropy minimization
-    https://arxiv.org/abs/2006.10726
+    Panda: Test-Time Adaptation with Negative Data Augmentation (AAAI 2026)
+    https://arxiv.org/abs/2511.10481
+    https://github.com/ruxideng/Panda
 """
 
 import time

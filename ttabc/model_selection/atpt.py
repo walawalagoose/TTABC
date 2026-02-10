@@ -1,3 +1,8 @@
+'''
+    A-TPT: Angular Diversity Calibration Properties for Test-Time Prompt Tuning of Vision-Language Models (ICLR 2026)
+    https://arxiv.org/abs/2510.26441
+'''
+
 import time
 from PIL import Image
 
