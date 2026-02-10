@@ -113,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
     # TTA method and prompting
     parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple', 'norm', 'prototype'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple/norm/prototype')
-    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt', 'oga', 'dota', 'bca', 'tent', 'sar', 'deyo', 'promptalign', 'tps', 'dpe', 'rlcf', 'calip', 'atpt'], help='which TTA method to use')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt', 'oga', 'dota', 'bca', 'tent', 'sar', 'deyo', 'promptalign', 'tps', 'dpe', 'rlcf', 'calip', 'atpt', 'panda'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=True, help='run test-time prompt tuning (sample-wise with augmentations)')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     parser.add_argument('--episodic', action='store_true', default=True, help='whether to reset model after each sample/batch')

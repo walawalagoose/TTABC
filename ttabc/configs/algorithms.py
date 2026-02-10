@@ -369,7 +369,7 @@ algorithm_defaults = {
         "supported_list": ['coop', 'cocoop', 'vp'],
         # "vp_type": 'lor_vp',
         "load": None,
-        "optimizer": "SGD",  # Adam for officehome
+        "optimizer": "AdamW",  # Adam for officehome
         "batch_size": 64,
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
@@ -377,4 +377,14 @@ algorithm_defaults = {
         "lambda_term": 80.0,  # lambda for a-tpt
         "two_step": False,  # whether to use two-step training
     },
+    "panda": {
+        "tpt": False,
+        "prompt_type": "norm",
+        "supported_list": ["norm"],
+        "optimizer": "AdamW",
+        "batch_size": 64,
+        "episodic": False,
+        "panda_beta": 0.2,           # β：logit-level bias offset strength
+        "panda_patch_size": 32,      # patch size for batch_hedge_v6_images
+},
 }

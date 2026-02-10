@@ -23,6 +23,7 @@ from .rlcf import RLCF
 from .calip import CALIP
 from .promptalign import PROMPTALIGN
 from .atpt import ATPT
+from .panda import Panda
 
 
 def get_method(method_name):
@@ -51,6 +52,7 @@ def get_method(method_name):
         'calip': CALIP,
         'promptalign': PROMPTALIGN,
         'atpt': ATPT,
+        'panda': Panda,
     }
     
     if method_name not in method_dict:
