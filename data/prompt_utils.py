@@ -31,7 +31,7 @@ def get_classnames(dataset: str) -> List[str]:
     if dataset == 'V':
         return [imagenet_classes[i] for i in imagenet_v_mask]
     if dataset == 'K':
-        return imagenet_classes[:200]  # ImageNet-Sketch uses first 200 classes
+        return imagenet_classes
     if dataset in ['cifar10', 'cifar10c']:
         return cifar10_classes
     if dataset in ['cifar100', 'cifar100c']:
