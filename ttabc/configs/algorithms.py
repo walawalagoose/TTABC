@@ -152,8 +152,9 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "AdamW",
         "batch_size": 64,
+        "optimizer": "AdamW",
+        "lr": 1e-4,
         "episodic": False,
     },
     
@@ -235,7 +236,8 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "AdamW",
+        "optimizer": "SGD",
+        "lr": 1e-4,
         "batch_size": 64,
         "episodic": False,
     },
@@ -243,6 +245,7 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
+        "lr": 1e-4,
         "batch_size": 64,
         "episodic": False,
         
@@ -253,7 +256,8 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": 'norm',
         "supported_list": ['norm'],
-        "optimizer": "AdamW",
+        "optimizer": "SGD",
+        "lr": 1e-4,
         "batch_size": 64,
         "episodic": False,
         
@@ -381,7 +385,8 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": "norm",
         "supported_list": ["norm"],
-        "optimizer": "AdamW",
+        "optimizer": "SGD",
+        "lr": 1e-4,
         "batch_size": 64,
         "episodic": False,
         "panda_beta": 0.2,           # β：logit-level bias offset strength
