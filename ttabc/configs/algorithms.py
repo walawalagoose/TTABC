@@ -292,10 +292,10 @@ algorithm_defaults = {
         "tpt": True,
         "prompt_type": "maple",
         "supported_list": ["maple"],
-        "load": None,
-        "optimizer": "SGD",
+        # "load": None,
+        "load": "checkpoints/maple/16shots/vit_b16/seed1/MultiModalPromptLearner/model.pth.tar-2",
+        "optimizer": "AdamW",
         "batch_size": 64,
-        # "ctx_init": "a_photo_of_a",
         "n_ctx": 2,
         "prompt_depth": 3,
         

@@ -49,7 +49,7 @@ class MultiModalPromptLearner(nn.Module):
         n_cls = len(classnames)
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
-        self.clip_model = clip_model
+        self.token_embedding = clip_model.token_embedding
         self.n_cls = n_cls
         self.n_ctx = n_ctx
         self.name_lens = None
@@ -104,10 +104,10 @@ class MultiModalPromptLearner(nn.Module):
 
         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts]).to(self.ctx.device)  # (n_cls, n_tkn)
         # added: to avoid device error
-        te_device = self.clip_model.token_embedding.weight.device
+        te_device = self.token_embedding.weight.device
         tokenized_prompts = tokenized_prompts.to(te_device)
         with torch.no_grad():
-            embedding = self.clip_model.token_embedding(tokenized_prompts).type(self.ctx.dtype)
+            embedding = self.token_embedding(tokenized_prompts).type(self.ctx.dtype)
 
         self.register_buffer("token_prefix", embedding[:, :1, :], persistent=False)  # SOS
         self.register_buffer("token_suffix", embedding[:, 1 + self.n_ctx:, :], persistent=False)  # CLS, EOS
