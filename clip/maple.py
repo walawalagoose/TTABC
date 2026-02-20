@@ -237,16 +237,19 @@ class MaPLe(nn.Module):
         self.model.load_state_dict(self._initial_state, strict=False)
     
     def load_checkpoint(self, checkpoint_path):
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        map_loc = torch.device(f"cuda:{self.device}" if torch.cuda.is_available() else "cpu")
+        checkpoint = torch.load(checkpoint_path, map_location=map_loc, weights_only=False)
         state_dict = checkpoint["state_dict"]
         
-        # Filter fixed tokens
+        # Ignore fixed token vectors
         if "prompt_learner.token_prefix" in state_dict:
             del state_dict["prompt_learner.token_prefix"]
         if "prompt_learner.token_suffix" in state_dict:
             del state_dict["prompt_learner.token_suffix"]
             
         self.model.load_state_dict(state_dict, strict=False)
+        # Important: reset() should recover to the loaded checkpoint, not the random init.
+        self._initial_state = _copy.deepcopy(self.model.state_dict())
         
         
 def get_maple(clip_arch, test_set, device, n_ctx, ctx_init=None, prompt_depth=9, design_details=None):

@@ -131,6 +131,13 @@ def create_model(args):
             prompt_depth=design_details['prompt_depth'],
             design_details=design_details
         )
+        # Load MaPLe pretrained weights
+        if args.load is not None:
+            print(f"=> loading MaPLe checkpoint '{args.load}'")
+            model.load_checkpoint(args.load)
+        for name, param in model.named_parameters():
+            if "prompt_learner" not in name:
+                param.requires_grad_(False)
         model_state = model.state_dict()
        
     print(f"=> Model created: visual backbone {args.arch}, prompting type: {args.prompt_type}")
