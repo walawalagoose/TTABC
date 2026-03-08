@@ -378,7 +378,8 @@ algorithm_defaults = {
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
         "n_ctx": 4,  # number of prompt tokens
-        "lambda_term": 80.0,  # lambda for a-tpt
+        "lambda_term": 80.0,  # 10 for ds, 80 for fg
+        "tau_term": 0.9999,  # cosine similarity clamp threshold for A-TPT
         "two_step": False,  # whether to use two-step training
     },
     "panda": {

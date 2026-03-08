@@ -1,6 +1,7 @@
 '''
     A-TPT: Angular Diversity Calibration Properties for Test-Time Prompt Tuning of Vision-Language Models (ICLR 2026)
-    https://arxiv.org/abs/2510.26441
+    https://arxiv.org/abs/2510.26441,
+    https://github.com/MB-Shihab-Aaqil-Ahamed/A-TPT/tree/master
 '''
 
 import time
@@ -8,6 +9,7 @@ from PIL import Image
 
 import torch
 import torch.optim
+import torch.nn.functional as F
 
 try:
     from torchvision.transforms import InterpolationMode
@@ -77,46 +79,25 @@ class ATPT(BaseMethod):
             # =====================================================
             # [A-TPT] Angular Diversity Regularization
             # =====================================================
+            # W = text_features; normalize; compute cosine sim matrix; for each class take max
+            # (excluding diagonal via subtracting 2*diag); clamp; min_ang_norm = -acos(clamped);
+            # loss += (-lambda_) * mean(min_ang_norm)
+            W = self.model.get_text_features()
+            W_ = F.normalize(W, p=2, dim=1)  # [C, D]
+            Wwt_ = torch.matmul(W_, W_.t())  # [C, C]
 
-            # text features: [N, D]
-            text_features = self.model.get_text_features()
+            # remove self-similarities from being selected by max
+            Wwt_ = Wwt_ - 2.0 * torch.diag(torch.diag(Wwt_))
 
-            # normalize (can stay in AMP)
-            text_features = torch.nn.functional.normalize(
-                text_features, dim=-1
-            )
+            max_Wwt_ = Wwt_.max(dim=1)[0]  # [C]
+            tau_ = getattr(self.args, "tau_term", 0.99999)
+            Wwt_constraint = max_Wwt_.clamp(-tau_, tau_)
+            min_ang_norm = -torch.acos(Wwt_constraint)  # [C]
+            min_ang_norm_mean = min_ang_norm.mean()
 
-            # >>> A-TPT FIX <<<
-            # acos MUST be computed in FP32 for numerical stability
-            with torch.cuda.amp.autocast(enabled=False):
-                text_features_fp32 = text_features.float()
-
-                # cosine similarity [N, N]
-                cos_sim = text_features_fp32 @ text_features_fp32.t()
-
-                eps = 1e-7
-                cos_sim = cos_sim.clamp(-1 + eps, 1 - eps)
-
-                # angular distance
-                angles = torch.acos(cos_sim)
-
-                # mask diagonal
-                N = angles.size(0)
-                diag_mask = torch.eye(
-                    N, device=angles.device, dtype=torch.bool
-                )
-                angles = angles.masked_fill(diag_mask, float('inf'))
-
-                # minimum angular distance per class
-                min_angles, _ = angles.min(dim=1)
-
-                # angular diversity
-                angular_diversity = min_angles.mean()
+            lambda_ = getattr(self.args, "lambda_term", 0.0)
+            loss = loss + ((-lambda_) * min_ang_norm_mean)
             # <<< A-TPT FIX <<<
-
-            lambda_ = self.args.lambda_term
-            loss = loss + (-lambda_ * angular_diversity)
-
             self.optimizer.zero_grad()
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
