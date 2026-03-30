@@ -46,7 +46,7 @@ algorithm_defaults = {
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
         "n_ctx": 4,  # number of prompt tokens
-        "lambda_term": 2.0,  # lambda for c-tpt
+        "lambda_term": 50.0,  # lambda for c-tpt
         "two_step": False,  # whether to use two-step training
     },
     "otpt": {
@@ -60,7 +60,7 @@ algorithm_defaults = {
         "ctx_init": 'a_photo_of_a',  # confidence threshold for online shot.
         "selection_p": 0.1,  # confidence threshold for online shot.
         "n_ctx": 4,  # number of prompt tokens
-        "lambda_term": 2.0,  # lambda for o-tpt
+        "lambda_term": 18.0,  # lambda for o-tpt
         "two_step": False,  # whether to use two-step training
     },
     
