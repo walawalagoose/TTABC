@@ -103,7 +103,8 @@ def create_model(args):
                 pretrained_ctx = torch.load(args.load, weights_only=False)['state_dict']['ctx']
                 assert pretrained_ctx.size()[0] == args.n_ctx
                 with torch.no_grad():
-                    model.prompt_learner.ctx_init_state = pretrained_ctx
+                    model.backbone.prompt_learner.ctx.copy_(pretrained_ctx)
+                    model.backbone.prompt_learner.ctx_init_state = pretrained_ctx
         # TODO: customize when vp works with cocoop
         elif args.vp_mode == 'cocoop':
             pass

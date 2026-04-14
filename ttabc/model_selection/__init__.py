@@ -24,6 +24,11 @@ from .calip import CALIP
 from .promptalign import PROMPTALIGN
 from .atpt import ATPT
 from .panda import Panda
+from .mta import MTA
+from .rtpt import RTPT
+from .onzeta import OnZeta
+from .ecalp import ECALP
+from .dynaprompt import DYNAPROMPT
 
 
 def get_method(method_name):
@@ -53,6 +58,11 @@ def get_method(method_name):
         'promptalign': PROMPTALIGN,
         'atpt': ATPT,
         'panda': Panda,
+        'mta': MTA,
+        'rtpt': RTPT,
+        'onzeta': OnZeta,
+        'ecalp': ECALP,
+        'dynaprompt': DYNAPROMPT
     }
     
     if method_name not in method_dict:

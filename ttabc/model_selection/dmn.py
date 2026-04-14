@@ -241,9 +241,6 @@ class DMN(BaseMethod):
             # dmnet.init_pred drives pseudo-label + entropy for memory update
             self.dmnet.init_pred = init_pred
 
-            # update dynamic memory using pseudo-label from init_pred (text-based)
-            self.dmnet.update_memory_bank(self.model, target)
-
             # current text prediction uses the first view
             logits_text = prob_text[:1]
 
@@ -252,6 +249,12 @@ class DMN(BaseMethod):
 
             # final output (prob fusion; matches Eq.(12) style)
             output = text_weight * logits_text + mem_weight * logits_mem
+            
+            # update dynamic memory using pseudo-label from init_pred (text-based)
+            # IMPORTANT: update memory AFTER producing the memory prediction for this sample.
+            # Otherwise the current sample is inserted into the memory bank first, making
+            # logits_mem trivially reinforce the pseudo-label and largely cancel any mem_weight sweep.
+            self.dmnet.update_memory_bank(self.model, target)
 
             if output.dim() == 3 and output.size(1) == 1:
                 output = output.squeeze(1)

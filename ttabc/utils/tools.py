@@ -252,7 +252,9 @@ def select_confident_samples(logits, top):
 def select_confident_samples_cosine(logits, selection_cosine, selection_selfentro):
     cosine_distan = [torch.nn.CosineSimilarity(dim=0)(logits[0], logits[i]) for i in range(1, logits.shape[0])]
     cosine_distan = torch.stack(cosine_distan)
-    idx_cosine = torch.argsort(cosine_distan, descending=True)[:int(cosine_distan.size()[0] * selection_cosine)]
+    bs = cosine_distan.size()[0]
+    topk = int(max(bs * selection_cosine, 1))
+    idx_cosine = torch.argsort(cosine_distan, descending=True)[:topk]
     # idx
     for i in range(idx_cosine.shape[0]):
         idx_cosine[i] +=1

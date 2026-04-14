@@ -392,5 +392,94 @@ algorithm_defaults = {
         "episodic": False,
         "panda_beta": 0.2,           # β：logit-level bias offset strength
         "panda_patch_size": 32,      # patch size for batch_hedge_v6_images
-},
+    },
+    
+     "mta": {
+        "tpt": True,
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "batch_size": 64,
+        "lambda_q": 4.0,
+        "lambda_y": 0.2,
+    },
+
+    "rtpt": {
+        "tpt": True,
+        "prompt_type": "coop",
+        "supported_list": ["coop"],
+        "load": None,
+        "optimizer": "AdamW",
+        "batch_size": 64,
+        "ctx_init": "a_photo_of_a",
+        "selection_p": 0.1,
+        "n_ctx": 4,
+        "lr": 5e-3,
+        "tta_steps": 1,
+        "rtpt_eps": 4.0, # for Vit
+        "rtpt_steps": 1, # for Vit
+        # "rtpt_eps": 1.0, # for Resnet50
+        # "rtpt_steps": 7, # for Resnet50
+        "load_tecoa": "",
+    },
+
+    "onzeta": {
+        "tpt": False,
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "batch_size": 256,
+        "tau_t": 0.01,
+        "tau_i": 0.04,
+        "cw": 0.5,
+        "cr": 20.0,
+        "alpha": 1.0,
+        "beta": 0.8,
+        "repeat": 5,
+        "prompt_setting": {
+            "templates": True,
+            "templates_list": [
+                "itap of a {}.",
+                "a origami {}.",
+                "a bad photo of the {}.",
+                "a photo of the large {}.",
+                "a {} in a video game.",
+                "art of the {}.",
+                "a photo of the small {}.",
+            ],
+        },
+    },
+    "ecalp": {
+        "tpt": False,
+        "prompt_type": "no_prompt",
+        "supported_list": ["no_prompt"],
+        "load": None,
+        "batch_size": 1,
+        "episodic": False,
+        "prompt_setting": {
+            "templates": True,
+        },
+        "ecalp_k_text": 3,
+        "ecalp_k_image": 8,
+        "ecalp_gamma": 10.0,
+        "ecalp_alpha": 1.0,
+        "ecalp_beta": 0.2,
+        "ecalp_num_iterations": 3,
+    },
+
+    "dynaprompt": {
+        "tpt": True,
+        "prompt_type": "coop",
+        "supported_list": ["coop"],
+        "load": None,
+        "optimizer": "AdamW",
+        "batch_size": 64,
+        "ctx_init": "a_photo_of_a",
+        "selection_p": 0.1,
+        "n_ctx": 4,
+        "lr": 5e-3,
+        "tta_steps": 1,
+        "episodic": False,
+        "dynap_onlinetpt": True,
+        "dynap_num_prompts": 12,
+        "dynap_num_select_prompts": 1,
+    },
 }
