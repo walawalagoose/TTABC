@@ -95,8 +95,10 @@ class OnZeta(BaseMethod):
         onzeta_acc1, onzeta_acc5 = accuracy(onzeta_output, image_label, topk=(1, 5))
 
         if result_dict is not None:
+            # softmax_output = onzeta_output.softmax(dim=1)
+            # max_confidence, max_index = torch.max(softmax_output, 1)
             softmax_output = onzeta_output.softmax(dim=1)
-            max_confidence, max_index = torch.max(softmax_output, 1)
+            max_confidence, max_index = torch.max(onzeta_output, 1)
             for j in range(max_confidence.size(0)):
                 result_dict["max_confidence"].append(max_confidence[j].item())
                 result_dict["prediction"].append(max_index[j].item())
