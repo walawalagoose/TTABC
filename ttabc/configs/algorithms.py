@@ -426,7 +426,7 @@ algorithm_defaults = {
         "tpt": False,
         "prompt_type": "no_prompt",
         "supported_list": ["no_prompt"],
-        "batch_size": 256,
+        "batch_size": 1,
         "tau_t": 0.01,
         "tau_i": 0.04,
         "cw": 0.5,
