@@ -304,8 +304,9 @@ class ECALP(BaseMethod):
             output = torch.cat(outputs, dim=0)
 
             if result_dict is not None:
-                probs = output.softmax(dim=1)
-                max_confidence, max_index = torch.max(probs, 1)
+                # probs = output.softmax(dim=1)
+                # max_confidence, max_index = torch.max(probs, 1)
+                max_confidence, max_index = torch.max(output, 1)
                 for j in range(max_confidence.size(0)):
                     result_dict["max_confidence"].append(max_confidence[j].item())
                     result_dict["prediction"].append(max_index[j].item())
