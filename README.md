@@ -1,8 +1,23 @@
 # TTABC: Test-Time Adaptation Benchmark of CLIP
 
-This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch. It is joint work by Jiazhen Huang, Zhiming Liu, and Xiao Chen.
+<p align="center">
+  <a href="https://github.com/walawalagoose/TTABC">
+    <img src="https://img.shields.io/github/stars/walawalagoose/TTABC?style=social">
+  </a>
+  <a href="https://github.com/walawalagoose/TTABC">
+    <img src="https://img.shields.io/badge/GitHub-Code-black?logo=github">
+  </a>
+  <a href="https://arxiv.org/abs/2606.14299">
+    <img src="https://img.shields.io/badge/arXiv-2606.14299-b31b1b?logo=arxiv">
+  </a>
+</p>
 
-The implementation is built upon [TPT](https://github.com/azshue/TPT). Experiment results are shown in [Link](https://docs.qq.com/sheet/DZUp4dFRZZER0VVdy?tab=jci45g).
+This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch, also the official repository of the paper *[What Drives Test-Time Adaptation for CLIP? A Controlled Empirical Study from an Update Perspective
+](https://arxiv.org/abs/2606.14299)*.
+
+<!--
+The implementation is built upon [TPT](https://github.com/azshue/TPT) and inspired by [TTAB](https://github.com/lins-lab/ttab).
+-->
 
 ## Available algorithms
 The [currently available algorithms](https://github.com/Cevaaa/TTABC_basic/tree/main/ttabc/model_selection) are:
@@ -15,6 +30,7 @@ The [currently available algorithms](https://github.com/Cevaaa/TTABC_basic/tree/
 - BoostAdapter: Improving Vision-Language Test-Time Adaptation via Regional Bootstrapping (BoostAdapter, [Taolin Zhang et al., 2024](https://arxiv.org/abs/2410.15430))
 - Frustratingly Easy Test-Time Adaptation of Vision-Language Models (ZERO, [Matteo Farina et al., 2024](https://arxiv.org/abs/2405.18330))
 - O-TPT: Orthogonality Constraints for Calibrating Test-time Prompt Tuning in Vision-Language Models (O-TPT, [Ashshak Sharifdeen et al., 2025](https://arxiv.org/abs/2503.12096))
+- *More to be updated...*
 
 Send us a PR to add your algorithm!
 
@@ -22,9 +38,11 @@ Send us a PR to add your algorithm!
 
 Our evaluation focuses on 
 
-1) fine-grained classification: ImageNet, Flower102, OxfordPets, SUN397, DTD, Food101, StanfordCars, Aircraft, UCF101, EuroSAT, Caltech101
+1) Fine-grained classification: ImageNet, Flower102, OxfordPets, SUN397, DTD, Food101, StanfordCars, Aircraft, UCF101, EuroSAT, Caltech101
 
-2) natural distribution shift: ImageNet-V2, ImageNet-A, ImageNet-R, ImageNet-Sketch
+2) Natural distribution shift: ImageNet-V2, ImageNet-A, ImageNet-R, ImageNet-Sketch
+
+3) Corruptions: ImageNet-C
 
 Prepare the datasets based on the following link [TPT](https://github.com/azshue/TPT).
 The download links of currently available datasets are:
@@ -49,6 +67,7 @@ The download links of currently available datasets are:
 + [SUN397](http://vision.princeton.edu/projects/2010/SUN/SUN397.tar.gz)
 + [Aircraft](https://www.robots.ox.ac.uk/~vgg/data/fgvc-aircraft/archives/fgvc-aircraft-2013b.tar.gz)
 + [EuroSAT](http://madm.dfki.de/files/sentinel/EuroSAT.zip)
++ *More to be updated...*
 
 </details>
 
@@ -124,18 +143,19 @@ Finally, add a `choices` option to `--run_type` in `./main.py` and implement the
 
 ## Acknowledgement
 
-We thank the authors of the [CoOp/CoCoOp](https://github.com/KaiyangZhou/CoOp) and [TPT](https://github.com/azshue/TPT) for their open-source contributions and their assistance with the data preparation.
+We thank the authors of [CoOp/CoCoOp](https://github.com/KaiyangZhou/CoOp) and [TPT](https://github.com/azshue/TPT) for their open-source contributions and their assistance with the data preparation, the authors of [TTAB](https://github.com/lins-lab/ttab) for inspiration of this work. 
 
-<!-- ## Citation
+## Citation
 If you find our work useful in your research, please cite:
 ```
-@article{chen2025small,
-  title={Small Aid, Big Leap: Efficient Test-Time Adaptation for Vision-Language Models with AdaptNet},
-  author={Chen, Xiao and Huang, Jiazhen and Jiang, Qinting and Huang, Fanding and Fu, Xianghua and Jiang, Jingyan and Wang, Zhi},
-  journal={arXiv preprint arXiv:2506.02671},
-  year={2025}
+@article{huang2026drives,
+  title={What Drives Test-Time Adaptation for CLIP? A Controlled Empirical Study from an Update Perspective},
+  author={Huang, Jiazhen and Chen, Xiao and Liu, Zhiming and Sun, Yaru and Jiang, Jingyan and Wang, Zhi},
+  journal={arXiv preprint arXiv:2606.14299},
+  year={2026}
 }
-``` -->
+
+```
 
 ## Contact
-If you have any questions, please feel free to email chen-x25@mails.tsinghua.edu.cn.
+If you have any questions, please feel free to [email](mailto:huangjiazhen1125@gmail.com) me.
