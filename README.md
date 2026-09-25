@@ -13,7 +13,7 @@
 </p>
 
 This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch, also the official repository of the paper *[What Drives Test-Time Adaptation for CLIP? A Controlled Empirical Study from an Update Perspective
-](https://arxiv.org/abs/2606.14299)*.
+](https://arxiv.org/abs/2606.14299)*, accepted by NeurIPS 2026 E&D Track.
 
 <!--
 The implementation is built upon [TPT](https://github.com/azshue/TPT) and inspired by [TTAB](https://github.com/lins-lab/ttab).
