@@ -10,6 +10,9 @@
   <a href="https://arxiv.org/abs/2606.14299">
     <img src="https://img.shields.io/badge/arXiv-2606.14299-b31b1b?logo=arxiv">
   </a>
+  <a href="https://walawalagoose.github.io/TTABC/">
+    <img src="https://img.shields.io/badge/Web-Page-teal?logo=googlechrome&logoColor=white">
+  </a>
 </p>
 
 This is an open source Test-Time Adaptation Benchmark of CLIP repository based on PyTorch, also the official repository of the paper *[What Drives Test-Time Adaptation for CLIP? A Controlled Empirical Study from an Update Perspective
@@ -58,7 +61,7 @@ The taxonomy is illustrated below.
   <img src="img/taxonomy.jpg" alt="TTA4CLIP Taxonomy" width="60%">
 </p>
 
-The [currently available algorithms](https://github.com/Cevaaa/TTABC_basic/tree/main/ttabc/model_selection) are:
+The [currently available algorithms](https://github.com/walawalagoose/TTABC_basic/tree/main/ttabc/model_selection) are:
 
 <details>
   <summary><strong>Available Algorithms</strong></summary>
@@ -193,7 +196,7 @@ The download links of currently available datasets are:
 ```bash
 
 # Clone this repo
-git clone https://github.com/Cevaaa/TTABC.git
+git clone https://github.com/walawalagoose/TTABC.git
 cd TTABC
 
 # Create a conda enviroment
