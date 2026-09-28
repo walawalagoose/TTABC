@@ -1,4 +1,4 @@
-# TTABC: Test-Time Adaptation Benchmark of CLIP 
+# TTABC: Test-Time Adaptation Benchmark of CLIP (NeurIPS 2026)
 
 <p align="center">
   <a href="https://github.com/walawalagoose/TTABC">
