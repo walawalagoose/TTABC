@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTABC · What Drives Test-Time Adaptation for CLIP?</title>
+<meta name="description" content="TTABC: an open-source Test-Time Adaptation Benchmark for CLIP. A controlled empirical study of TTA4CLIP from an update perspective.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#top">TTA<span>BC</span></a>
+    <button class="nav-toggle" aria-label="menu" id="navToggle"><span></span><span></span><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#taxonomy">Taxonomy</a></li>
+      <li><a href="#findings">Findings</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#benchmark">Benchmark</a></li>
+      <li><a href="#getstarted">Get Started</a></li>
+      <li><a href="#citation">Citation</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="hero" id="top">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="badge-row">
+      <span class="pill pill-accent">NeurIPS 2026 · D&amp;B Track</span>
+      <span class="pill">Open-Source Benchmark</span>
+    </div>
+    <h1 class="hero-title">What Drives Test-Time Adaptation for CLIP?</h1>
+    <p class="hero-sub">A Controlled Empirical Study from an Update Perspective</p>
+
+    <p class="authors">
+      Jiazhen Huang<sup>1,*</sup>,
+      Xiao Chen<sup>1,*</sup>,
+      Zhiming Liu<sup>1,*</sup>,
+      Yaru Sun<sup>2</sup>,
+      Jingyan Jiang<sup>2,&dagger;</sup>,
+      Zhi Wang<sup>1,&dagger;</sup>
+    </p>
+    <p class="affil">
+      <sup>1</sup>Tsinghua University &nbsp;&nbsp; <sup>2</sup>Shenzhen Technology University
+      <br><span class="note"><sup>*</sup>Equal contribution &nbsp; <sup>&dagger;</sup>Corresponding authors</span>
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://arxiv.org/abs/2606.14299" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Paper
+      </a>
+      <a class="btn" href="https://arxiv.org/abs/2606.14299" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v12H5.17L4 17.17z"/></svg>
+        arXiv
+      </a>
+      <a class="btn" href="https://github.com/walawalagoose/TTABC" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+        Code
+      </a>
+    </div>
+  </div>
+
+  <!-- key stats -->
+  <div class="stats">
+    <div class="stat"><span class="stat-num" data-count="20">20+</span><span class="stat-lbl">TTA4CLIP Methods</span></div>
+    <div class="stat"><span class="stat-num" data-count="3">3</span><span class="stat-lbl">Update Paradigms</span></div>
+    <div class="stat"><span class="stat-num" data-count="4">4</span><span class="stat-lbl">Shift Categories</span></div>
+    <div class="stat"><span class="stat-num" data-count="16">16</span><span class="stat-lbl">Datasets</span></div>
+  </div>
+</header>
+
+<main>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview" class="section">
+  <div class="wrap">
+    <span class="kicker">Abstract</span>
+    <h2>Stepping back from SOTA chasing</h2>
+    <div class="two-col">
+      <div>
+        <p>Vision-Language Models such as <strong>CLIP</strong> are a standard backbone for open-vocabulary
+        recognition, yet their zero-shot predictions remain vulnerable to distribution shifts at deployment.
+        Test-Time Adaptation (TTA) has recently been extended to CLIP as a lightweight solution, leading to a
+        rapidly growing body of <strong>TTA4CLIP</strong> methods.</p>
+        <p>However, empirical progress has outpaced our understanding of <em>what truly drives adaptation</em>,
+        where the gains originate, and under which shifts they remain reliable. We take a step back from the
+        pursuit of state-of-the-art accuracy and conduct a <strong>systematic controlled study</strong> of
+        TTA4CLIP.</p>
+        <p>We organize existing methods into three unified paradigms by <em>what is updated</em> at test time,
+        and introduce <strong>TTABC</strong>, an open-source TTA Benchmark for CLIP that standardizes evaluation
+        protocols and integrates 20+ representative methods.</p>
+      </div>
+      <div>
+        <figure class="fig">
+          <img src="assets/img/empirical_study.jpg" alt="Overview of the controlled empirical study" loading="lazy">
+          <figcaption>Overview of our controlled empirical study, structured into three parts.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TAXONOMY ===== -->
+<section id="taxonomy" class="section section-alt">
+  <div class="wrap">
+    <span class="kicker">Mechanistic Taxonomy</span>
+    <h2>Three paradigms by test-time update target</h2>
+    <p class="lead">Despite diverse implementations, all existing TTA4CLIP methods can be organized by
+      <strong>what is updated at test time</strong>.</p>
+
+    <div class="cards-3">
+      <div class="card">
+        <div class="card-ico">&#9881;</div>
+        <h3>Parameter-based</h3>
+        <p>Adapt model parameters (prompts, norm layers, prototype residuals) via gradient-based optimization.</p>
+        <div class="tag-list">
+          <a href="https://arxiv.org/abs/2209.07511" target="_blank" rel="noopener">TPT</a>
+          <a href="https://arxiv.org/abs/2308.06038" target="_blank" rel="noopener">DiffTPT</a>
+          <a href="https://arxiv.org/abs/2410.20346" target="_blank" rel="noopener">HisTPT</a>
+          <a href="https://arxiv.org/abs/2403.14119" target="_blank" rel="noopener">C-TPT</a>
+          <a href="https://arxiv.org/abs/2510.26441" target="_blank" rel="noopener">A-TPT</a>
+          <a href="https://arxiv.org/abs/2504.11195" target="_blank" rel="noopener">R-TPT</a>
+          <a href="https://arxiv.org/abs/2305.18010" target="_blank" rel="noopener">RLCF</a>
+          <a href="https://arxiv.org/abs/2311.01459" target="_blank" rel="noopener">PromptAlign</a>
+          <a href="https://arxiv.org/abs/2403.12952" target="_blank" rel="noopener">TPS</a>
+          <a href="https://arxiv.org/abs/2410.12790" target="_blank" rel="noopener">DPE</a>
+          <a href="https://arxiv.org/abs/2412.02837" target="_blank" rel="noopener">BATCLIP</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-ico">&#128190;</div>
+        <h3>State-based</h3>
+        <p>Keep parameters frozen; update an external state by accumulating historical evidence from the test stream.</p>
+        <div class="tag-list">
+          <a href="https://arxiv.org/abs/2403.18293" target="_blank" rel="noopener">TDA</a>
+          <a href="https://arxiv.org/abs/2410.15430" target="_blank" rel="noopener">BoostAdapter</a>
+          <a href="https://arxiv.org/abs/2403.17589" target="_blank" rel="noopener">DMN</a>
+          <a href="https://arxiv.org/abs/2412.18303" target="_blank" rel="noopener">ECALP</a>
+          <a href="https://arxiv.org/abs/2409.19375" target="_blank" rel="noopener">DoTA</a>
+          <a href="https://arxiv.org/abs/2501.04352" target="_blank" rel="noopener">OGA</a>
+          <a href="https://arxiv.org/abs/2503.09248" target="_blank" rel="noopener">BCA</a>
+          <a href="https://arxiv.org/abs/2408.13320" target="_blank" rel="noopener">OnZeta</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-ico">&#9889;</div>
+        <h3>Inference-based</h3>
+        <p>Update neither parameters nor state; refine predictions directly using current evidence in the forward pass.</p>
+        <div class="tag-list">
+          <a href="https://arxiv.org/abs/2405.18330" target="_blank" rel="noopener">ZERO</a>
+          <a href="https://arxiv.org/abs/2405.02266" target="_blank" rel="noopener">MTA</a>
+          <a href="https://arxiv.org/abs/2209.14169" target="_blank" rel="noopener">CALIP</a>
+          <a href="https://arxiv.org/abs/2511.10481" target="_blank" rel="noopener">Panda</a>
+        </div>
+      </div>
+    </div>
+
+    <figure class="fig fig-wide">
+      <img src="assets/img/taxonomy.jpg" alt="A mechanistic taxonomy of TTA4CLIP" loading="lazy">
+      <figcaption>A mechanistic taxonomy of TTA4CLIP methods, categorized by their test-time update targets.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===== FINDINGS ===== -->
+<section id="findings" class="section">
+  <div class="wrap">
+    <span class="kicker">Key Findings</span>
+    <h2>What the controlled study reveals</h2>
+
+    <div class="finding">
+      <div class="finding-num">01</div>
+      <div class="finding-body">
+        <h3>Determining factors in test-time parameter update</h3>
+        <p>Heavy parameter optimization yields <strong>limited and diminishing returns</strong>. Instead,
+        adaptation gains are primarily driven by the <strong>test-time evidence</strong> (quantity &amp; quality
+        of augmented views) and <strong>reliable proxies</strong> — the exact proxy form is secondary as long as
+        it aligns with predictive correctness (entropy &amp; MSP correlate with batch accuracy at
+        <span class="mono">r = &minus;0.929 / 0.916</span>).</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-num">02</div>
+      <div class="finding-body">
+        <h3>Evidence utilization beyond heavy optimization</h3>
+        <p>Competitive and efficient performance can be achieved <strong>without heavy back-propagation</strong> —
+        through prediction refinement from cross-/current-sample evidence or lightweight prototype residual updates.
+        TPS updates only a <span class="mono">K&times;d</span> residual matrix, uses just
+        <strong>1.30&nbsp;GiB</strong> memory vs. TPT's 3.80&nbsp;GiB / BATCLIP's 8.54&nbsp;GiB, yet leads on natural shifts.</p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-num">03</div>
+      <div class="finding-body">
+        <h3>No silver bullet for TTA across shifts</h3>
+        <p>No single adaptation paradigm is universally optimal. The preferred paradigm depends on the
+        <strong>nature of the shift</strong>: prototype/inference methods for natural shifts, state-based methods
+        for fine-grained shifts, norm-layer adaptation for corruptions, and stream-aware designs for label shifts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== RESULTS ===== -->
+<section id="results" class="section section-alt">
+  <div class="wrap">
+    <span class="kicker">Main Results</span>
+    <h2>Which paradigm wins on which shift?</h2>
+    <p class="lead">Accuracy (%) for CLIP ViT-B/16. Best per column in <strong>bold</strong>.
+       Winners differ across shift types &mdash; the core evidence for &ldquo;no silver bullet&rdquo;.</p>
+
+    <div class="winners">
+      <div class="winner"><span class="winner-shift">Natural Shifts</span><span class="winner-name">Parameter (Prototype)</span><span class="winner-ex">TPS · DoTA</span></div>
+      <div class="winner"><span class="winner-shift">Fine-Grained</span><span class="winner-name">State-based</span><span class="winner-ex">OnZeta · ECALP</span></div>
+      <div class="winner"><span class="winner-shift">Corruption</span><span class="winner-name">Parameter (Norm Layer)</span><span class="winner-ex">DeYO · SAR</span></div>
+      <div class="winner"><span class="winner-shift">Label Shift</span><span class="winner-name">Stream-aware</span><span class="winner-ex">StatA</span></div>
+    </div>
+
+    <h3 class="tbl-title">Natural &amp; Corruption Shifts &mdash; representative methods</h3>
+    <div class="table-scroll">
+      <table class="rtable">
+        <thead>
+          <tr>
+            <th>Paradigm</th><th>Method</th><th>INet</th><th>I-V2</th><th>I-A</th><th>I-R</th><th>I-S</th>
+            <th>Nat. Avg.</th><th>Corr. Avg.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-base"><td class="c-pg">&mdash;</td><td class="c-method">Zero-Shot CLIP</td><td>66.72</td><td>60.86</td><td>47.87</td><td>73.98</td><td>46.08</td><td>57.20</td><td>21.46</td></tr>
+          <tr><td rowspan="4" class="c-pg pg pg-p">Parameter</td><td class="c-method">TPT</td><td>68.85</td><td>63.06</td><td>52.12</td><td>76.52</td><td>47.94</td><td>59.91</td><td>25.55</td></tr>
+          <tr><td class="c-method"><strong>TPS</strong></td><td>70.29</td><td><strong>64.01</strong></td><td>58.44</td><td><strong>79.30</strong></td><td>50.28</td><td><strong>63.01</strong></td><td>27.43</td></tr>
+          <tr><td class="c-method">DPE</td><td>70.20</td><td>63.61</td><td>56.92</td><td>77.66</td><td>50.79</td><td>62.25</td><td>27.74</td></tr>
+          <tr><td class="c-method">BATCLIP</td><td>66.92</td><td>60.94</td><td>48.57</td><td>75.99</td><td>44.33</td><td>57.46</td><td><strong>30.91</strong></td></tr>
+          <tr><td rowspan="3" class="c-pg pg pg-s">State</td><td class="c-method">ECALP</td><td>70.18</td><td>62.27</td><td>49.12</td><td>77.69</td><td>51.74</td><td>60.21</td><td>29.76</td></tr>
+          <tr><td class="c-method">DoTA</td><td>70.70</td><td>63.74</td><td><strong>58.43</strong></td><td>77.66</td><td>50.27</td><td>62.53</td><td>25.81</td></tr>
+          <tr><td class="c-method">OnZeta</td><td><strong>71.12</strong></td><td>63.34</td><td>48.55</td><td>75.48</td><td><strong>52.06</strong></td><td>59.86</td><td>29.38</td></tr>
+          <tr><td rowspan="2" class="c-pg pg pg-i">Inference</td><td class="c-method">ZERO</td><td>68.94</td><td>63.26</td><td>56.08</td><td>76.67</td><td>47.72</td><td>60.93</td><td>22.95</td></tr>
+          <tr><td class="c-method">MTA</td><td>69.02</td><td>63.17</td><td>54.65</td><td>76.88</td><td>48.36</td><td>60.77</td><td>25.42</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="tbl-title">Norm-layer adaptation specializes in corruptions</h3>
+    <div class="table-scroll">
+      <table class="rtable">
+        <thead>
+          <tr><th>Method</th><th>Natural Avg.</th><th>Fine-Grained Avg.</th><th>Corruption Avg.</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-base"><td class="c-method">Zero-Shot CLIP</td><td>57.20</td><td>63.76</td><td>21.46</td></tr>
+          <tr><td class="c-method">TPS</td><td><strong>63.01</strong></td><td>65.17</td><td>27.43</td></tr>
+          <tr><td class="c-method">OnZeta</td><td>59.86</td><td><strong>69.39</strong></td><td>29.38</td></tr>
+          <tr><td class="c-method">SAR</td><td>57.47</td><td>63.93</td><td>31.62</td></tr>
+          <tr><td class="c-method"><strong>DeYO</strong></td><td>57.86</td><td>64.33</td><td><strong>34.98</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-line">Memory footprint: Zero-shot 0.75 GiB · TPS 0.94 · TPT 3.80 · BATCLIP 8.54 GiB.
+      DiffTPT costs ~21 s/sample (~44 h on full I-A) vs. TPS ~0.21 s/sample.</p>
+  </div>
+</section>
+
+<!-- ===== BENCHMARK ===== -->
+<section id="benchmark" class="section">
+  <div class="wrap">
+    <span class="kicker">The TTABC Benchmark</span>
+    <h2>An extensible evaluation platform</h2>
+    <p class="lead">A single shared codebase implementing 20+ methods across all three paradigms,
+      with standardized protocols and datasets.</p>
+
+    <div class="bench-grid">
+      <div class="bench-box">
+        <h3>Natural Distribution Shifts</h3>
+        <p>ImageNet-V2, ImageNet-A, ImageNet-R, ImageNet-Sketch</p>
+      </div>
+      <div class="bench-box">
+        <h3>Fine-Grained Classification</h3>
+        <p>Caltech101, OxfordPets, StanfordCars, Flowers102, Food101, Aircraft, SUN397, DTD, EuroSAT, UCF101</p>
+      </div>
+      <div class="bench-box">
+        <h3>Image Corruptions</h3>
+        <p>ImageNet-C (15 corruption types &times; 5 severity levels)</p>
+      </div>
+      <div class="bench-box">
+        <h3>Label Shifts</h3>
+        <p>Dirichlet-based temporally correlated streams, overlaid on any shift type</p>
+      </div>
+    </div>
+
+    <div class="repo-tree">
+      <div class="repo-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="repo-title">TTABC/</span></div>
+<pre>TTABC/
+├── <span class="dir">clip/</span>                     CLIP backbones &amp; encoders
+├── <span class="dir">data/</span>                     dataset loaders &amp; splits
+├── <span class="dir">ttabc/</span>
+│   ├── <span class="dir">model_selection/</span>      <span class="cmt"># 30+ method implementations</span>
+│   │   ├── tpt.py  tps.py  dpe.py  difftpt.py
+│   │   ├── tda.py  dota.py  oga.py  onzeta.py  bca.py
+│   │   ├── zero.py mta.py  calip.py panda.py  ...
+│   │   └── base_method.py   <span class="cmt"># BaseMethod interface</span>
+│   ├── <span class="dir">configs/</span>
+│   └── <span class="dir">utils/</span>
+├── main.py                  <span class="cmt"># entry point</span>
+├── test_ds_example.sh       <span class="cmt"># natural/corruption shifts</span>
+└── test_fg_example.sh       <span class="cmt"># fine-grained shifts</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===== GET STARTED ===== -->
+<section id="getstarted" class="section section-alt">
+  <div class="wrap">
+    <span class="kicker">Get Started</span>
+    <h2>Run experiments in minutes</h2>
+
+    <div class="two-col two-col-wide">
+      <div>
+        <h3 class="code-h">Installation</h3>
+        <div class="code-block">
+          <button class="copy-btn" data-copy="install">Copy</button>
+<pre id="install"><span class="cmt"># Clone the repository</span>
+git clone https://github.com/walawalagoose/TTABC.git
+cd TTABC
+
+<span class="cmt"># Create a conda environment</span>
+conda create -n ttabc python=3.10 -y
+conda activate ttabc
+
+<span class="cmt"># Install PyTorch (match your CUDA)</span>
+pip3 install torch torchvision torchaudio \
+  --index-url https://download.pytorch.org/whl/cu128
+
+pip install -r requirements.txt</pre>
+        </div>
+      </div>
+      <div>
+        <h3 class="code-h">Running Experiments</h3>
+        <div class="code-block">
+          <button class="copy-btn" data-copy="run">Copy</button>
+<pre id="run"><span class="cmt"># Set {data_root}; pick arch RN50 or ViT-B/16
+# select a method via {run_type}: tpt, tps, tda ...</span>
+
+<span class="cmt"># Test on ImageNet-R</span>
+bash ./test_ds_example.sh R
+
+<span class="cmt"># ImageNet / -A / -V2 / -R / -Sketch</span>
+bash ./test_ds_example.sh I/A/V/R/K
+
+<span class="cmt"># Fine-grained datasets</span>
+bash ./test_fg_example.sh DTD/Flower102/Food101/...</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="addmethod">
+      <h3 class="code-h">Adding a new method</h3>
+      <ol class="steps">
+        <li>Create <span class="mono">ttabc/model_selection/newMethod.py</span> with a class inheriting
+          <span class="mono">BaseMethod</span>, implementing <span class="mono">test_time_tuning</span>
+          and <span class="mono">test_time_adapt_eval</span>.</li>
+        <li>Register the key in <span class="mono">ttabc/model_selection/__init__.py</span>.</li>
+        <li>Add a <span class="mono">--run_type</span> choice in <span class="mono">main.py</span> and wire it in
+          <span class="mono">main_worker</span>.</li>
+      </ol>
+      <p class="note-line">Send a PR to add your algorithm!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CITATION ===== -->
+<section id="citation" class="section">
+  <div class="wrap">
+    <span class="kicker">Citation</span>
+    <h2>Cite our work</h2>
+    <div class="code-block">
+      <button class="copy-btn" data-copy="bib">Copy</button>
+<pre id="bib">@article{huang2026drives,
+  title   = {What Drives Test-Time Adaptation for CLIP?
+             A Controlled Empirical Study from an Update Perspective},
+  author  = {Huang, Jiazhen and Chen, Xiao and Liu, Zhiming and
+             Sun, Yaru and Jiang, Jingyan and Wang, Zhi},
+  journal = {arXiv preprint arXiv:2606.14299},
+  year    = {2026}
+}</pre>
+    </div>
+    <div class="ack">
+      <h3 class="code-h">Acknowledgement</h3>
+      <p>We thank the authors of <a href="https://github.com/KaiyangZhou/CoOp" target="_blank" rel="noopener">CoOp/CoCoOp</a>
+      and <a href="https://github.com/azshue/TPT" target="_blank" rel="noopener">TPT</a> for their open-source
+      contributions and data-preparation help, and the authors of
+      <a href="https://github.com/lins-lab/ttab" target="_blank" rel="noopener">TTAB</a> for inspiration.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div>
+      <span class="foot-logo">TTA<span>BC</span></span>
+      <p>Test-Time Adaptation Benchmark for CLIP</p>
+    </div>
+    <div class="foot-links">
+      <a href="https://arxiv.org/abs/2606.14299" target="_blank" rel="noopener">Paper</a>
+      <a href="https://github.com/walawalagoose/TTABC" target="_blank" rel="noopener">Code</a>
+      <a href="mailto:huangjiazhen1125@gmail.com">Contact</a>
+    </div>
+  </div>
+  <p class="copyright">&copy; 2026 TTABC Authors · Tsinghua University &amp; Shenzhen Technology University</p>
+</footer>
+
+<script src="assets/script.js"></script>
+</body>
+</html>
