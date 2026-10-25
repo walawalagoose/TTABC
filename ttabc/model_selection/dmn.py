@@ -122,8 +122,29 @@ class DualMem(nn.Module):
 
             adaptive_image_feat = adaptive_image_feat / adaptive_image_feat.norm(dim=-1, keepdim=True)
             logit_scale = model.logit_scale.exp()
-            logits = logit_scale * adaptive_image_feat @ img_feat.unsqueeze(-1)  ## class*1
-            logits = logits[:, 0].unsqueeze(0)  ## 1*class
+            if img_feat.ndim != 2 or img_feat.size(0) != 1:
+                raise RuntimeError(
+                    "DMN expects one query feature with shape [1, D], "
+                    f"but received {tuple(img_feat.shape)}."
+                )
+            if adaptive_image_feat.ndim != 2 or adaptive_image_feat.size(1) != img_feat.size(1):
+                raise RuntimeError(
+                    "DMN memory prototypes must have shape [C, D] with the same "
+                    f"feature dimension as the query; received {tuple(adaptive_image_feat.shape)} "
+                    f"and {tuple(img_feat.shape)}."
+                )
+
+            # [1, D] @ [D, C] -> [1, C].  The previous implementation formed
+            # [1, C, 1] via broadcasting and then indexed the class dimension,
+            # collapsing the prediction to [1, 1, 1].  Its softmax was therefore
+            # always one and DMN's memory branch could not affect the predicted class.
+            logits = logit_scale * (img_feat @ adaptive_image_feat.t())
+            expected_shape = (1, num_class)
+            if tuple(logits.shape) != expected_shape:
+                raise RuntimeError(
+                    f"DMN produced logits with shape {tuple(logits.shape)}; "
+                    f"expected {expected_shape}."
+                )
             if return_logit:
                 return logits
             else:
@@ -246,6 +267,13 @@ class DMN(BaseMethod):
 
             # dynamic memory prediction (prob)
             logits_mem = self.dmnet.get_image_pred(self.model)
+
+            if logits_mem.shape != logits_text.shape:
+                raise RuntimeError(
+                    "DMN text and memory predictions must have identical [1, C] "
+                    f"shapes, but received {tuple(logits_text.shape)} and "
+                    f"{tuple(logits_mem.shape)}."
+                )
 
             # final output (prob fusion; matches Eq.(12) style)
             output = text_weight * logits_text + mem_weight * logits_mem
