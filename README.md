@@ -4,7 +4,7 @@
   <a href="https://github.com/walawalagoose/TTABC">
     <img src="https://img.shields.io/github/stars/walawalagoose/TTABC?style=social">
   </a>
-  <a href="https://github.com/walawalagoose/TTABC">
+  <a href="https://githFub.com/walawalagoose/TTABC">
     <img src="https://img.shields.io/badge/GitHub-Code-black?logo=github">
   </a>
   <a href="https://arxiv.org/abs/2606.14299">
@@ -78,7 +78,7 @@ The [currently available algorithms](https://github.com/walawalagoose/TTABC_basi
 * Diverse Data Augmentation with Diffusions for Effective Test-time Prompt Tuning (DiffTPT, [Chun-Mei Feng et al., 2023](https://arxiv.org/abs/2308.06038))
 * Historical Test-time Prompt Tuning for Vision Foundation Models (HisTPT, [Jingyi Zhang et al., 2024](https://arxiv.org/abs/2410.20346))
 * C-TPT: Calibrated Test-Time Prompt Tuning for Vision-Language Models via Text Feature Dispersion (C-TPT, [Hee Suk Yoon et al., 2024](https://arxiv.org/abs/2403.14119))
-* A-TPT: Angular Diversity Calibration Properties for Test-Time Prompt Tuning of Vision-Language Models (A-TPT, [Syed Ashar Ahamed et al., 2025](https://arxiv.org/abs/2510.26441))
+* A-TPT: Angular Diversity Calibration Properties for Test-Time Prompt Tuning of Vision-Language Models (A-TPT, [Shihab Aaqil Ahamed et al., 2025](https://arxiv.org/abs/2510.26441))
 * R-TPT: Improving Adversarial Robustness of Vision-Language Models through Test-Time Prompt Tuning (R-TPT, [Lijun Sheng et al., 2025](https://arxiv.org/abs/2504.11195))
 * Align Your Prompts: Test-Time Prompting with Distribution Alignment for Zero-Shot Generalization (PromptAlign, [Jameel Hassan Abdul Samadh et al., 2023](https://arxiv.org/abs/2311.01459))
 * Test-Time Adaptation with CLIP Reward for Zero-Shot Generalization in Vision-Language Models (RLCF, [Shuai Zhao et al., 2023](https://arxiv.org/abs/2305.18010))
