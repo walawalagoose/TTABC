@@ -227,13 +227,10 @@ bash ./test_ds_example.sh I/A/V/R/K # test on imgenet, imgenet-a, imgenet-v, img
 
 The command line argument `{dataset}` can be specified as follows: `I`, `DTD`, `Flower102`, `Food101`, `StanfordCars`, `SUN397`, `Aircraft`, `OxfordPets`, `Caltech101`, `UCF101`, or `EuroSAT` for fine-grained classification datasets, and `V2`, `A`, `R`, or `K` for datasets with natural distribution shifts.
 
+<!--
 ### Label-shift methods: StatA and MOON
 
-[StatA](https://github.com/MaxZanella/StatA) and
-[MOON](https://github.com/walawalagoose/MOON) use training-free, batch-local
-transduction with the same CLIP features and zero-shot priors as other TTABC
-methods. MOON uses the official vMF mixture and dynamic shrinkage defaults;
-it is not the separate sample-wise `MOON_online` memory-bank extension.
+[StatA](https://github.com/MaxZanella/StatA) and [MOON](https://github.com/walawalagoose/MOON) use training-free, batch-local transduction with the same CLIP features and zero-shot priors as other TTABC methods.
 
 ```bash
 python main.py /path/to/dataset --test_sets A -a ViT-B/16 --run_type moon \
@@ -245,15 +242,7 @@ python main.py /path/to/dataset --test_sets A -a ViT-B/16 --run_type moon \
 python scripts/run_label_shift.py /path/to/dataset --methods stata moon \
   --gpu 0 --seed 2022 --output logs_label_shift
 ```
-
-Replace `moon` with `stata` for StatA. Method options use the
-`--moon_*` / `--stata_*` prefixes (see `python main.py --help`).
-The runner saves arguments, logs, actual batch indices, stream hashes and
-`results.json`; use a new output directory for each run.
-The online sampler preserves the original drop-last protocol (7,488 of
-7,500 ImageNet-A images at batch size 64); No Shift evaluates all images.
-Dirichlet sampling now follows `--seed`. Historical unseeded Dirichlet
-streams cannot be reconstructed from their logged seed alone.
+-->
 
 ## 👾 Adding a new method
 
