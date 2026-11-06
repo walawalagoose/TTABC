@@ -113,7 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--arch', metavar='ARCH', default='RN50') # backbone architecture
     # TTA method and prompting
     parser.add_argument('--prompt_type' , type=str, default='coop', choices=['no_prompt', 'coop', 'cocoop', 'vp', 'maple', 'norm', 'prototype'], help='type of prompt, support no_prompt/coop/cocoop/vp/maple/norm/prototype')
-    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt', 'oga', 'dota', 'bca', 'tent', 'sar', 'deyo', 'promptalign', 'tps', 'dpe', 'rlcf', 'calip', 'atpt', 'panda', 'mta', 'rtpt', 'onzeta', 'ecalp', 'dynaprompt'], help='which TTA method to use')
+    parser.add_argument('--run_type' , type=str, default='tpt', choices=['zero_shot', 'baseline', 'tpt', 'ctpt', 'otpt', 'tda', 'boostadapter', 'difftpt', 'zero', 'batclip', 'dmn', 'histpt', 'oga', 'dota', 'bca', 'tent', 'sar', 'deyo', 'promptalign', 'tps', 'dpe', 'rlcf', 'calip', 'atpt', 'panda', 'mta', 'rtpt', 'onzeta', 'ecalp', 'dynaprompt', 'stata', 'moon'], help='which TTA method to use')
     parser.add_argument('--tpt', action='store_true', default=True, help='run test-time prompt tuning (sample-wise with augmentations)')
     parser.add_argument('--load', default=None, type=str, help='path to a pre-trained coop/cocoop')
     parser.add_argument('--episodic', action='store_true', default=True, help='whether to reset model after each sample/batch')
@@ -125,6 +125,39 @@ if __name__ == '__main__':
     parser.add_argument('--ctx_init', default=None, type=str, help='init tunable prompts')
     parser.add_argument('--prompt_setting', default=None, type=str)
     
+    # StatA config
+    parser.add_argument('--stata_alpha', type=float, default=1.0, help='StatA anchor weighting hyper-parameter')
+    parser.add_argument('--stata_lambda_y_hat', type=float, default=1.0, help='StatA zero-shot prediction weighting')
+    parser.add_argument('--stata_lambda_laplacian', type=float, default=1.0, help='StatA Laplacian weighting')
+    parser.add_argument('--stata_n_neighbors', type=int, default=3, help='number of neighbors for StatA affinity graph')
+    parser.add_argument('--stata_max_iter', type=int, default=10, help='number of StatA outer iterations')
+    parser.add_argument('--stata_soft_beta', action='store_true', default=False, help='use soft StatA beta computation')
+    # Label shift config
+    parser.add_argument('--label_shift', action='store_true', default=False,
+                        help='enable label-shifted sampling in test dataloader')
+    parser.add_argument('--label_shift_mode', type=str, default='batch',
+                        choices=['batch', 'online'],
+                        help='label shift mode: original batch sampler or original online sampler')
+    parser.add_argument('--label_shift_gamma', type=float, default=1.0,
+                        help='Dirichlet parameter for original online label shift sampler')
+    parser.add_argument('--num_class_eff', type=int, default=None,
+                        help='original batch sampler: number of effective classes in each batch')
+    parser.add_argument('--num_class_eff_min', type=int, default=None,
+                        help='original batch sampler: minimum number of effective classes per batch')
+    parser.add_argument('--num_class_eff_max', type=int, default=None,
+                        help='original batch sampler: maximum number of effective classes per batch')
+    parser.add_argument('--label_shift_num_slots', type=int, default=None,
+                        help='original online sampler: number of slots; default is min(num_batches, num_classes)')
+    parser.add_argument('--label_shift_scope', type=int, default=-1,
+                        help='scope size for original batch/online label shift; -1 means global scope')
+    # MOON config
+    parser.add_argument('--moon_alpha', type=float, default=1.0, help='MOON anchor weighting')
+    parser.add_argument('--moon_lambda_y_hat', type=float, default=1.0, help='MOON zero-shot prediction weighting')
+    parser.add_argument('--moon_lambda_laplacian', type=float, default=1.0, help='MOON Laplacian weighting')
+    parser.add_argument('--moon_n_neighbors', type=int, default=3, help='number of MOON graph neighbors')
+    parser.add_argument('--moon_max_iter', type=int, default=10, help='number of MOON outer iterations')
+    parser.add_argument('--moon_soft_beta', action='store_true', default=False, help='use soft MOON class counts')
+
     # parameters and device
     parser.add_argument('--lr', '--learning-rate', default=5e-3, type=float,
                         metavar='LR', help='initial learning rate', dest='lr')

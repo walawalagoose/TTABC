@@ -25,6 +25,7 @@ import pickle
 from datetime import datetime
 import os
 from loguru import logger
+from ttabc.utils.sampler import LabelShiftBatchSampler, LabelShiftOnlineBatchSampler, extract_dataset_labels
 
 def create_dataloader(args, set_id):
     # norm stats from clip.load()
@@ -92,6 +93,41 @@ def create_dataloader(args, set_id):
     else:
         val_dataset = build_dataset(set_id, data_transform, args.data, mode=args.dataset_mode)
     
+    if getattr(args, "label_shift", False):
+        if args.down_sample_ratio is not None:
+            sample_size = int(args.down_sample_ratio * len(val_dataset))
+            indices = np.random.choice(len(val_dataset), sample_size, replace=False)
+            val_dataset = torch.utils.data.Subset(val_dataset, indices.tolist())
+        labels = extract_dataset_labels(val_dataset)
+        scope = getattr(args, "label_shift_scope", -1)
+        mode = getattr(args, "label_shift_mode", "batch")
+        if mode == "online":
+            slots = getattr(args, "label_shift_num_slots", None)
+            if slots is None:
+                slots = min(max(1, len(labels) // max(1, real_batch_size)), len(np.unique(labels)))
+            batch_sampler = LabelShiftOnlineBatchSampler(
+                labels, getattr(args, "label_shift_gamma", 1.0), slots,
+                real_batch_size, scope_size=scope, seed=args.seed,
+            )
+        elif mode == "batch":
+            batch_sampler = LabelShiftBatchSampler(
+                labels, real_batch_size,
+                num_class_eff=getattr(args, "num_class_eff", None),
+                num_class_eff_min=getattr(args, "num_class_eff_min", None),
+                num_class_eff_max=getattr(args, "num_class_eff_max", None),
+                scope_size=scope,
+            )
+        else:
+            raise ValueError(f"Unsupported label_shift_mode: {mode}")
+        logger.info("Label shift: mode={}, gamma={}, scope={}, samples={}, batches={}",
+                    mode, getattr(args, "label_shift_gamma", None), scope,
+                    len(val_dataset), len(batch_sampler))
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_sampler=batch_sampler,
+            num_workers=args.workers, pin_memory=True,
+        )
+        return val_dataset, val_loader, classnames
+
     if args.down_sample_ratio is not None:
         # Get dataset size and random sampling indices
         total_size = len(val_dataset)

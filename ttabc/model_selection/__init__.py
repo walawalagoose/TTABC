@@ -29,6 +29,8 @@ from .rtpt import RTPT
 from .onzeta import OnZeta
 from .ecalp import ECALP
 from .dynaprompt import DYNAPROMPT
+from .stata import StatA
+from .moon import MOON
 
 
 def get_method(method_name):
@@ -62,7 +64,9 @@ def get_method(method_name):
         'rtpt': RTPT,
         'onzeta': OnZeta,
         'ecalp': ECALP,
-        'dynaprompt': DYNAPROMPT
+        'dynaprompt': DYNAPROMPT,
+        'stata': StatA,
+        'moon': MOON,
     }
     
     if method_name not in method_dict:

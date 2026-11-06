@@ -6,6 +6,18 @@
 import math
 
 algorithm_defaults = {
+    "stata": {
+        "tpt": False,
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        "load": None,
+    },
+    "moon": {
+        "tpt": False,
+        "prompt_type": 'no_prompt',
+        "supported_list": ['no_prompt'],
+        "load": None,
+    },
     "zero_shot": {
         "tpt": False, # True is also supported
         "prompt_type": 'no_prompt',
